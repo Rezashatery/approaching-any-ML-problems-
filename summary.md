@@ -156,21 +156,84 @@ that can be solved in a much simpler manner. In other words, the simplest soluti
 are the most generalizable solutions. In general, whenever your model does not
 obey Occam’s razor, it is probably overfitting.
 
-Now we can go back to **cross-validation**.
+Now we can go back to **cross-validation**.<br>
 While explaining about overfitting, I decided to divide the data into two parts. I
 trained the model on one part and checked its performance on the other part. Well,
 this is also a kind of cross-validation commonly known as a hold-out set. We use
 this kind of (cross-) validation when we have a large amount of data and model
-inference is a time-consuming process.
+inference is a time-consuming process.<br>
 There are many different ways one can do cross-validation, and it is the most critical
 step when it comes to building a good machine learning model which is
 generalizable when it comes to unseen data. Choosing the right cross-validation
 depends on the dataset you are dealing with, and one’s choice of cross-validation
 on one dataset may or may not apply to other datasets. However, there are a few
 types of cross-validation techniques which are the most popular and widely used.
-These include:
-*k-fold cross-validation
-*stratified k-fold cross-validation
-*hold-out based validation
-*leave-one-out cross-validation
-*group k-fold cross-validation
+These include:<br>
+*k-fold cross-validation<br>
+*stratified k-fold cross-validation<br>
+*hold-out based validation<br>
+*leave-one-out cross-validation<br>
+*group k-fold cross-validation<br>
+Cross-validation is dividing training data into a few parts. We train the model on
+some of these parts and test on the remaining parts. <br>
+when you get a dataset to build machine learning models, you separate them into two different sets: training and validation. Many people also split it into a third set and call it a test set. We will, however, be using only two sets. As you can see, we divide the samples and the targets associated with them. We can divide the data into k different sets which are exclusive of each other. This is known as **k-fold cross-validation**.<br>
+We can split any data into k-equal parts using KFold from scikit-learn. Each sample
+is assigned a value from 0 to k-1 when using k-fold cross validation.<br>
+```python
+# import pandas and model_selection module of scikit-learn
+import pandas as pd
+from sklearn import model_selection
+if __name__ == "__main__":
+# Training data is in a CSV file called train.csv
+df = pd.read_csv("train.csv")
+# we create a new column called kfold and fill it with -1
+df["kfold"] = -1
+# the next step is to randomize the rows of the data
+df = df.sample(frac=1).reset_index(drop=True)
+# initiate the kfold class from model_selection module
+kf = model_selection.KFold(n_splits=5)
+# fill the new kfold column
+for fold, (trn_, val_) in enumerate(kf.split(X=df)):
+df.loc[val_, 'kfold'] = fold
+# save the new csv with kfold column
+df.to_csv("train_folds.csv", index=False)
+```
+The next important type of cross-validation is **stratified k-fold**. If you have a
+skewed dataset for binary classification with 90% positive samples and only 10%
+negative samples, you don't want to use random k-fold cross-validation. Using
+simple k-fold cross-validation for a dataset like this can result in folds with all
+negative samples. In these cases, we prefer using **stratified k-fold cross-validation**.
+Stratified k-fold cross-validation keeps the ratio of labels in each fold constant. So,
+in each fold, you will have the same 90% positive and 10% negative samples. Thus,
+whatever metric you choose to evaluate, it will give similar results across all folds.<br>
+It’s easy to modify the code for creating k-fold cross-validation to create stratified
+k-folds. We are only changing from model_selection.KFold to
+model_selection.StratifiedKFold and in the kf.split(...) function, we specify the
+target column on which we want to stratify. We assume that our CSV dataset has a
+column called “target” and it is a classification problem.<br>
+```python   
+# import pandas and model_selection module of scikit-learn
+import pandas as pd
+from sklearn import model_selection
+if __name__ == "__main__":
+# Training data is in a csv file called train.csv
+df = pd.read_csv("train.csv")
+# we create a new column called kfold and fill it with -1
+df["kfold"] = -1
+# the next step is to randomize the rows of the data
+df = df.sample(frac=1).reset_index(drop=True)
+# fetch targets
+y = df.target.values
+# initiate the kfold class from model_selection module
+kf = model_selection.StratifiedKFold(n_splits=5)
+# fill the new kfold column
+for f, (t_, v_) in enumerate(kf.split(X=df, y=y)):
+df.loc[v_, 'kfold'] = f
+# save the new csv with kfold column
+df.to_csv("train_folds.csv", index=False)
+```
+
+Note that we continue on the code above. So, we have converted the target values.
+Looking at figure 6 we can say that the quality is very much skewed. Some classes have a lot of samples, and some don’t have that many. If we do a simple k-fold, we won’t have an equal distribution of targets in every fold. Thus, we choose stratified k-fold in this case.<br>
+But what should we do if we have a large amount of data?<br>
+we can opt for a **hold-out based validation.**
