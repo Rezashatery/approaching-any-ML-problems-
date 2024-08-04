@@ -74,6 +74,103 @@ df_test = df.tail(599)
 ```
 
 We will now train a decision tree model on the training set. For the decision tree model, I am going to use scikit-learn.
+
+```python
+
+# import from scikit-learn
+from sklearn import tree
+from sklearn import metrics
+# initialize decision tree classifier class
+# with a max_depth of 3
+clf = tree.DecisionTreeClassifier(max_depth=3)
+# choose the columns you want to train on
+# these are the features for the model
+cols = ['fixed acidity',
+'volatile acidity',
+'citric acid',
+'residual sugar',
+'chlorides',
+'free sulfur dioxide',
+'total sulfur dioxide',
+'density',
+'pH',
+'sulphates',
+'alcohol']
+# train the model on the provided features
+# and mapped quality from before
+clf.fit(df_train[cols], df_train.quality)
+```
 Note that I have used a max_depth of 3 for the decision tree classifier. I have left
 all other parameters of this model to its default value.
 Now, we test the accuracy of this model on the training set and the test set
+
+```python
+# generate predictions on the training set
+train_predictions = clf.predict(df_train[cols])
+# generate predictions on the test set
+test_predictions = clf.predict(df_test[cols])
+# calculate the accuracy of predictions on
+# training data set
+train_accuracy = metrics.accuracy_score(
+df_train.quality, train_predictions
+)
+# calculate the accuracy of predictions on
+# test data set
+test_accuracy = metrics.accuracy_score(
+df_test.quality, test_predictions
+)
+
+```
+
+The training and test accuracies are found to be 58.9% and 54.25%. Now we
+increase the max_depth to 7 and repeat the process. This gives training accuracy of
+76.6% and test accuracy of 57.3%. Here, we have used accuracy, mainly because it
+is the most straightforward metric. It might not be the best metric for this problem.
+What about we calculate these accuracies for different values of max_depth and
+make a plot?
+We see that the best score for test data is obtained when max_depth has a value of
+14 . As we keep increasing the value of this parameter, test accuracy remains the
+same or gets worse, but the training accuracy keeps increasing. It means that our
+simple decision tree model keeps learning about the training data better and better
+with an increase in max_depth, but the performance on test data does not improve
+at all.
+
+This is called **overfitting**.
+The model fits perfectly on the training set and performs poorly when it comes to
+the test set. This means that the model will learn the training data well but will not
+generalize on unseen samples. In the dataset above, one can build a model with very
+high max_depth which will have outstanding results on training data, but that kind
+of model is not useful as it will not provide a similar result on the real-world samples
+or live data.
+Another definition of overfitting would be when the *test loss increases as we keep improving training loss. This is very common when it comes to neural networks*.
+
+Whenever we train a neural network, we must monitor loss during the training time
+for both training and test set. If we have a very large network for a dataset which is
+quite small (i.e. very less number of samples), we will observe that the loss for both
+training and test set will decrease as we keep training. However, at some point, test
+loss will reach its minima, and after that, it will start increasing even though training
+loss decreases further. We must stop training where the validation loss reaches its
+minimum value.
+**Occam’s razor** in simple words states that one should not try to complicate things
+that can be solved in a much simpler manner. In other words, the simplest solutions
+are the most generalizable solutions. In general, whenever your model does not
+obey Occam’s razor, it is probably overfitting.
+
+Now we can go back to **cross-validation**.
+While explaining about overfitting, I decided to divide the data into two parts. I
+trained the model on one part and checked its performance on the other part. Well,
+this is also a kind of cross-validation commonly known as a hold-out set. We use
+this kind of (cross-) validation when we have a large amount of data and model
+inference is a time-consuming process.
+There are many different ways one can do cross-validation, and it is the most critical
+step when it comes to building a good machine learning model which is
+generalizable when it comes to unseen data. Choosing the right cross-validation
+depends on the dataset you are dealing with, and one’s choice of cross-validation
+on one dataset may or may not apply to other datasets. However, there are a few
+types of cross-validation techniques which are the most popular and widely used.
+These include:
+*k-fold cross-validation
+*stratified k-fold cross-validation
+*hold-out based validation
+*leave-one-out cross-validation
+*group k-fold cross-validation
