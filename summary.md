@@ -263,4 +263,78 @@ number of bins. Just divide the data into 10 or 20 bins. If you do not have a lo
 samples, you can use a simple rule like **Sturge’s Rule** to calculate the appropriate
 number of bins.
 ### Sturge’s rule:
-                  `Number of Bins = 1 + log₂(N)`
+                        `Number of Bins = 1 + log₂(N)`
+
+
+Let’s make a sample regression dataset and try to apply stratified k-fold as shown
+in the following python snippet.<br>
+
+```python 
+# stratified-kfold for regression
+import numpy as np
+import pandas as pd
+from sklearn import datasets
+from sklearn import model_selection
+def create_folds(data):
+# we create a new column called kfold and fill it with -1
+data["kfold"] = -1
+# the next step is to randomize the rows of the data
+data = data.sample(frac=1).reset_index(drop=True)
+# calculate the number of bins by Sturge's rule
+# I take the floor of the value, you can also
+# just round it
+num_bins = int(np.floor(1 + np.log2(len(data))))
+# bin targets
+data.loc[:, "bins"] = pd.cut(
+data["target"], bins=num_bins, labels=False
+)
+# initiate the kfold class from model_selection module
+kf = model_selection.StratifiedKFold(n_splits=5)
+# fill the new kfold column
+# note that, instead of targets, we use bins!
+for f, (t_, v_) in enumerate(kf.split(X=data, y=data.bins.values)):
+data.loc[v_, 'kfold'] = f
+# drop the bins column
+data = data.drop("bins", axis=1)
+# return dataframe with folds
+return data
+if __name__ == "__main__":
+# we create a sample dataset with 15000 samples
+# and 100 features and 1 target
+X, y = datasets.make_regression(
+n_samples=15000, n_features=100, n_targets=1
+)
+# create a dataframe out of our numpy arrays
+df = pd.DataFrame(
+X,
+columns=[f"f_{i}" for i in range(X.shape[1])]
+)
+df.loc[:, "target"] = y
+# create folds
+df = create_folds(df).
+```
+
+Cross-validation is the first and most essential step when it comes to building
+machine learning models. If you want to do feature engineering, split your data first.
+If you're going to build models, split your data first. If you have a good cross-
+validation scheme in which validation data is representative of training and real-
+world data, you will be able to build a good machine learning model which is highly
+generalizable.<br>
+The types of cross-validation presented in this chapter can be applied to almost any
+machine learning problem. Still, you must keep in mind that cross-validation also
+depends a lot on the data and you might need to adopt new forms of cross-validation
+depending on your problem and data.<br>
+For example, let’s say we have a problem in which we would like to build a model
+to detect skin cancer from skin images of patients. Our task is to build a binary
+classifier which takes an input image and predicts the probability for it being benign
+or malignant.<br>
+In these kinds of datasets, you might have multiple images for the same patient in
+the training dataset. So, to build a good cross-validation system here, you must have
+stratified k-folds, but you must also make sure that patients in training data do not
+appear in validation data. Fortunately, scikit-learn offers a type of cross-validation
+known as GroupKFold. Here the patients can be considered as groups. But
+unfortunately, there is no way to combine GroupKFold with StratifiedKFold in
+scikit-learn. So you need to do that yourself.<br>
+
+
+## Evaluation metrics
