@@ -43,3 +43,37 @@ not overfit. But this leads to another term: **overfitting**.
 To explain overfitting, I think it’s best if we look at a dataset. There is a red wine-
 quality dataset 2 which is quite famous. This dataset has 11 different attributes that
 decide the quality of red wine. Based on these different attributes, we are required to predict the quality of red wine which is a value between 0 and 10.
+We can treat this problem either as a classification problem or as a regression
+problem since wine quality is nothing but a real number between 0 and 10. For
+simplicity, let’s choose classification. This dataset, however, consists of only six
+types of quality values. We will thus map all quality values from 0 to 5.
+quality_mapping = {
+3: 0,
+4: 1,
+5: 2,
+6: 3,
+7: 4,
+8: 5
+}
+When we look at this data and consider it a classification problem, a lot of
+algorithms come to our mind that we can apply to it, So, let’s start with something simple that we can visualize too: **decision trees**.
+Before we begin to understand what overfitting is, let’s divide the data into two
+parts. This dataset has 1599 samples. We keep 1000 samples for training and 599
+as a separate set. 
+
+```python
+# use sample with frac=1 to shuffle the dataframe
+# we reset the indices since they change after
+# shuffling the dataframe
+
+df = df.sample(frac=1).reset_index(drop=True)
+
+df_train = df.head(1000)
+
+df_test = df.tail(599)
+```
+
+We will now train a decision tree model on the training set. For the decision tree model, I am going to use scikit-learn.
+Note that I have used a max_depth of 3 for the decision tree classifier. I have left
+all other parameters of this model to its default value.
+Now, we test the accuracy of this model on the training set and the test set
