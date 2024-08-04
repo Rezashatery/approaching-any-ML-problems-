@@ -338,3 +338,8 @@ scikit-learn. So you need to do that yourself.<br>
 
 
 ## Evaluation metrics
+When it comes to machine learning problems, you will encounter a lot of different
+types of metrics in the real world. Sometimes, people even end up creating metrics
+that suit the business problem. It’s out of the scope of this book to introduce and
+explain each and every type of metric. Instead, we will see some of the most
+common metrics that you can use when starting with your very first few projects.
