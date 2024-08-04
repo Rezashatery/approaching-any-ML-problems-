@@ -30,3 +30,16 @@ numerous decomposition techniques such as **Principal Component Analysis(PCA)**,
 
 Most of the time, it’s also possible to convert a supervised dataset to unsupervised
 to see how they look like when plotted. For example, **MNIST** dataset which is a very popular dataset of handwritten digits, and it is a supervised problem in which you are given the images of the numbers and the correct label associated with them. You have to build a model that can identify which digit is it when provided only with the image. This dataset can easily be converted to an unsupervised setting for basic visualization. If we do a t-Distributed Stochastic Neighbour Embedding (t-SNE) decomposition of this dataset, we can see that we can separate the images to some extent just by doing with two components on the image pixels. This is one way of visualizing unsupervised datasets. We can also do k-means clustering on the same dataset and see how it performs in an unsupervised setting. One question that arises all the time is how to find the optimal number of clusters in k-means clustering. Well, there is no right answer. You have to find the number by cross-validation.
+
+## Cross-validation
+We did not build any models in the previous chapter. The reason for that is simple.
+Before creating any kind of machine learning model, we must know what cross validation is and how to choose the best cross-validation depending on your datasets.
+So, what is **cross-validation**, and why should we care about it?
+We can find multiple definitions as to what cross-validation is. Mine is a one-liner:
+cross-validation is a step in the process of building a machine learning model which
+helps us ensure that our models fit the data accurately and also ensures that we do
+not overfit. But this leads to another term: **overfitting**.
+
+To explain overfitting, I think it’s best if we look at a dataset. There is a red wine-
+quality dataset 2 which is quite famous. This dataset has 11 different attributes that
+decide the quality of red wine. Based on these different attributes, we are required to predict the quality of red wine which is a value between 0 and 10.
