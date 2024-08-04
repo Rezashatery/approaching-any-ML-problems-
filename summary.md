@@ -237,3 +237,30 @@ Note that we continue on the code above. So, we have converted the target values
 Looking at figure 6 we can say that the quality is very much skewed. Some classes have a lot of samples, and some don’t have that many. If we do a simple k-fold, we won’t have an equal distribution of targets in every fold. Thus, we choose stratified k-fold in this case.<br>
 But what should we do if we have a large amount of data?<br>
 we can opt for a **hold-out based validation.**
+In many cases, we have to deal with small datasets and creating big validation sets
+means losing a lot of data for the model to learn. In those cases, we can opt for a
+type of k-fold cross-validation where k=N, where N is the number of samples in the
+dataset. This means that in all folds of training, we will be training on all data
+samples except 1. The number of folds for this type of cross-validation is the same
+as the number of samples that we have in the dataset.<br>
+One should note that this type of cross-validation can be costly in terms of the time
+it takes if the model is not fast enough, but since it’s only preferable to use this
+cross-validation for small datasets, it doesn’t matter much. <br>
+
+## validation for regression problems
+Now we can move to regression. The good thing about regression problems is that
+we can use all the cross-validation techniques mentioned above for regression
+problems except for stratified k-fold. That is we cannot use stratified k-fold directly,
+but there are ways to change the problem a bit so that we can use stratified k-fold
+for regression problems. Mostly, simple k-fold cross-validation works for any
+regression problem. However, if you see that the distribution of targets is not
+consistent, you can use stratified k-fold.<br>
+To use **stratified k-fold for a regression problem**, we have first to divide the target
+into bins, and then we can use stratified k-fold in the same way as for classification
+problems. There are several choices for selecting the appropriate number of bins. If
+you have a lot of samples( > 10k, > 100k), then you don’t need to care about the
+number of bins. Just divide the data into 10 or 20 bins. If you do not have a lot of
+samples, you can use a simple rule like **Sturge’s Rule** to calculate the appropriate
+number of bins.
+### Sturge’s rule:
+                  `Number of Bins = 1 + log₂(N)`
