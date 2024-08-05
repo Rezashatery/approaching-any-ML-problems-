@@ -913,7 +913,7 @@ f1 += weighted_f1
 overall_f1 = f1 / len(y_true)
 return overall_f1   
 ```
-
+### multi-class problems
 Thus, we have precision, recall and F1 implemented for multi-class problems. You
 can similarly convert AUC and log loss to multi-class formats too. This format of
 conversion is known as one-vs-all. I’m not going to implement them here as the
@@ -1004,3 +1004,37 @@ return 0
 # else, we return the sum of list over length of list
 return sum(pk_values) / len(pk_values)
 ```
+
+Please note that I have omitted many values from the output, but you get the point.
+So, this is how we can calculate AP@k which is per sample. In machine learning,
+we are interested in all samples, and that’s why we have mean average precision
+at k or MAP@k. MAP@k is just an average of AP@k and can be calculated easily
+by the following python code.<br>
+``` python
+def mapk(y_true, y_pred, k):
+"""
+This function calculates mean avg precision at k
+for a single sample
+:param y_true: list of values, actual classes
+:param y_pred: list of values, predicted classes
+:return: mean avg precision at a given value k
+"""
+# initialize empty list for apk values
+apk_values = []
+# loop over all samples
+for i in range(len(y_true)):
+# store apk values for every sample
+apk_values.append(apk(y_true[i], y_pred[i], k=k)
+)
+# return mean of apk values list
+return sum(apk_values) / len(apk_values)
+
+```
+P@k, AP@k and MAP@k all range from 0 to 1 with 1 being the best.<br>
+Now, we come to log loss for multi-label classification. This is quite easy. You
+can convert the targets to binary format and then use a log loss for each column. In
+the end, you can take the average of log loss in each column. This is also known as
+mean column-wise log loss. Of course, there are other ways you can implement
+this, and you should explore it as you come across it.<br>
+
+### Regression
