@@ -352,12 +352,63 @@ AUC (AUC)
 - Log loss
 - Precision at k (P@k)
 - Average precision at k (AP@k)
-- Mean average precision at k (MAP@k)
-When it comes to regression, the most commonly used evaluation metrics are:
+- Mean average precision at k (MAP@k)<br>
+When it comes to regression, the most commonly used evaluation metrics are:<br>
 - Mean absolute error (MAE)
 - Mean squared error (MSE)
 - Root mean squared error (RMSE)
 - Root mean squared logarithmic error (RMSLE)
 - Mean percentage error (MPE)
 - Mean absolute percentage error (MAPE)
-- R 2
+- R 2<br>
+
+Knowing about how the aforementioned metrics work is not the only thing we have
+to understand. We must also know when to use which metrics, and that depends on what kind of data and targets you have. I think it’s more about the targets and less about the data.<br>
+
+When we have an equal number of positive and negative samples in a binary
+classification metric, we generally use accuracy, precision, recall and f1.<br>
+**Accuracy**: It is one of the most straightforward metrics used in machine learning.
+It defines how accurate your model is. For the problem described above, if you
+build a model that classifies 90 images accurately, your accuracy is 90% or 0.90. If
+only 83 images are classified correctly, the accuracy of your model is 83% or 0.83.
+Simple.<br>
+
+```python
+
+def accuracy(y_true, y_pred):
+"""
+Function to calculate accuracy
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: accuracy score
+"""
+# initialize a simple counter for correct predictions
+correct_counter = 0
+# loop over all elements of y_true
+# and y_pred "together"
+for yt, yp in zip(y_true, y_pred):
+if yt == yp:
+# if prediction is equal to truth, increase the counter
+correct_counter += 1
+# return accuracy
+# which is correct predictions over the number of samples
+return correct_counter / len(y_true)
+
+```
+
+We can also calculate accuracy using scikit-learn.<br>
+
+Now, let’s say the dataset a bit such that there are 180 chest x-ray images
+which do not have pneumothorax and only 20 with pneumothorax.Even in this
+case, we will create the training and validation sets with the same ratio of positive
+to negative (pneumothorax to non- pneumothorax) targets. In each set, we have 90
+non- pneumothorax and 10 pneumothorax images. If you say that all images in the
+validation set are non-pneumothorax, what would your accuracy be? Let’s see; you
+classified 90% of the images correctly. So, your accuracy is 90%.<br>
+You didn’t even build a model and got an accuracy of 90%. That seems kind of
+useless. If we look carefully, we will see that the dataset is skewed, i.e., the number
+of samples in one class outnumber the number of samples in other class by a lot. In
+these kinds of cases, it is not advisable to use accuracy as an evaluation metric as it
+is not representative of the data. So, you might get high accuracy, but your model
+will probably not perform that well when it comes to real-world samples, and you
+won’t be able to explain to your managers why.<br>
