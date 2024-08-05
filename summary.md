@@ -1133,3 +1133,57 @@ implementation makes things more clear.
 $$
 R^2 = 1 - \frac{\sum_{i=1}^{N} \left(y_{ti} - y_{pi}\right)^2}{\sum_{i=1}^{N} \left(y_{ti} - y_{tmean}\right)^2}
 $$
+
+```python
+import numpy as np
+def r2(y_true, y_pred):
+"""
+This function calculates r-squared score
+:param y_true: list of real numbers, true values
+:param y_pred: list of real numbers, predicted values
+:return: r2 score
+"""
+# calculate the mean value of true values
+mean_true_value = np.mean(y_true)
+# initialize numerator with 0
+numerator = 0
+# initialize denominator with 0
+denominator = 0
+# loop over all true and predicted values
+for yt, yp in zip(y_true, y_pred):
+# update numerator
+numerator += (yt - yp) ** 2
+# update denominator
+denominator += (yt - mean_true_value) ** 2
+# calculate the ratio
+ratio = numerator / denominator
+# return 1 - ratio
+return 1 – ratio
+```
+
+there are some advanced metrics.<br>
+
+One of them which is quite widely used is **quadratic weighted kappa**, also known
+as **QWK**. It is also known as **Cohen’s kappa**. QWK measures the “agreement”
+between two “ratings”. The ratings can be any real numbers in 0 to N. And
+predictions are also in the same range. An agreement can be defined as how close
+these ratings are to each other. So, it’s suitable for a classification problem with N
+different categories/classes. If the agreement is high, the score is closer towards 1.0.
+In the case of low agreement, the score is close to 0. Cohen’s kappa has a good
+implementation in scikit-learn.<br>
+<br>
+An important metric is Matthew’s Correlation Coefficient (MCC). MCC ranges
+from -1 to 1. 1 is perfect prediction, -1 is imperfect prediction, and 0 is random
+prediction. The formula for MCC is quite simple.<br>
+
+$$
+MCC = \frac{TP \times TN - FP \times FN}{\sqrt{(TP + FP) \times (FN + TN) \times (FP + TN) \times (TP + FN)}}
+$$
+We see that MCC takes into consideration TP, FP, TN and FN and thus can be used
+for problems where classes are skewed.<br>
+
+One thing to keep in mind is that to evaluate un-supervised methods, for example,
+some kind of clustering, it’s better to create or manually label the test set and keep
+it separate from everything that is going on in your modelling part. When you are
+done with clustering, you can evaluate the performance on the test set simply by
+using any of the supervised learning metrics.<br>
