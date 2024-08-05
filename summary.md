@@ -499,4 +499,102 @@ classification.<br>
 If we have to define accuracy using the terms described above, we can write:<br>
 
                 Accuracy Score = (TP + TN) / (TP + TN + FP + FN)
-                
+
+Now, we can move to other important metrics.<br>
+First one is precision. Precision is defined as:<br>
+
+                Precision = TP / (TP + FP)
+
+
+Now, since we have implemented TP, TN, FP and FN, we can easily implement
+precision in python.<br>
+
+``` python
+def precision(y_true, y_pred):
+"""
+Function to calculate precision
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: precision score
+"""
+tp = true_positive(y_true, y_pred)
+fp = false_positive(y_true, y_pred)
+precision = tp / (tp + fp)
+return precision
+
+```
+
+
+Next, we come to recall. Recall is defined as:<br>
+
+                        Recall = TP / (TP + FN)
+
+
+```python
+def recall(y_true, y_pred):
+"""
+Function to calculate recall
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: recall score
+"""
+tp = true_positive(y_true, y_pred)
+fn = false_negative(y_true, y_pred)
+recall = tp / (tp + fn)
+return recall
+```
+
+For a “good” model, our precision and recall values should be high.<br>
+
+Most of the models predict a probability, and when we predict, we usually choose
+this threshold to be 0.5. This threshold is not always ideal, and depending on this
+threshold, your value of precision and recall can change drastically. If for every
+threshold we choose, we calculate the precision and recall values, we can create a
+plot between these sets of values. This plot or curve is known as the precision-recall
+curve.
+
+Before looking into the precision-recall curve, let’s assume two lists.<br>
+
+``` python
+In [X]: y_true = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+...:
+1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+In [X]: y_pred = [0.02638412, 0.11114267, 0.31620708,
+...:
+0.0490937, 0.0191491, 0.17554844,
+...:
+0.15952202, 0.03819563, 0.11639273,
+...:
+0.079377,
+0.08584789, 0.39095342,
+...:
+0.27259048, 0.03447096, 0.04644807,
+...:
+0.03543574, 0.18521942, 0.05934905,
+...:
+0.61977213, 0.33056815]
+```
+
+So, y_true is our targets, and y_pred is the probability values for a sample being
+assigned a value of 1. So, now, we look at probabilities in prediction instead of the
+predicted value (which is most of the time calculated with a threshold at 0.5).
+
+``` python
+precisions = []
+recalls = []
+# how we assumed these thresholds is a long story
+thresholds = [0.0490937 , 0.05934905, 0.079377,
+0.08584789, 0.11114267, 0.11639273,
+0.15952202, 0.17554844, 0.18521942,
+0.27259048, 0.31620708, 0.33056815,
+0.39095342, 0.61977213]
+# for every threshold, calculate predictions in binary
+# and append calculated precisions and recalls
+# to their respective lists
+for i in thresholds:
+temp_prediction = [1 if x >= i else 0 for x in y_pred]
+p = precision(y_true, temp_prediction)
+r = recall(y_true, temp_prediction)
+precisions.append(p)
+recalls.append(r)
+```
