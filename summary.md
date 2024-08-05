@@ -598,3 +598,44 @@ r = recall(y_true, temp_prediction)
 precisions.append(p)
 recalls.append(r)
 ```
+You will notice that it’s challenging to choose a value of threshold that gives both
+good precision and recall values. If the threshold is too high, you have a smaller
+number of true positives and a high number of false negatives. This decreases your
+recall; however, your precision score will be high. If you reduce the threshold too
+low, false positives will increase a lot, and precision will be less.<br>
+Both precision and recall range from 0 to 1 and a value closer to 1 is better.<br>
+F1 score is a metric that combines both precision and recall. It is defined as a simple
+weighted average (harmonic mean) of precision and recall. If we denote precision
+using P and recall using R, we can represent the F1 score as:
+
+                        F1 = 2PR / (P + R)
+
+A little bit of mathematics will lead you to the following equation of F1 based on
+TP, FP and FN
+
+                        F1 = 2TP / (2TP + FP + FN)
+
+A Python implementation is simple because we have already implemented these.
+
+``` python
+def f1(y_true, y_pred):
+"""
+Function to calculate f1 score
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: f1 score
+"""
+p = precision(y_true, y_pred)
+r = recall(y_true, y_pred)
+score = 2 * p * r / (p + r)
+return score
+```
+
+F1 score also ranges from 0 to 1, and a perfect prediction model has an F1 of 1. When dealing with datasets that have skewed targets, we should look at F1 (or precision and recall) instead of accuracy.<br>
+
+Then there are other crucial terms that we should know about.
+The first one is **TPR** or True Positive Rate, which is the same as recall.
+
+                            TPR = TP / (TP + FN)
+
+TPR or recall is also known as **sensitivity**.
