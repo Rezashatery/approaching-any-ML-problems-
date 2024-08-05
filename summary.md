@@ -412,3 +412,91 @@ these kinds of cases, it is not advisable to use accuracy as an evaluation metri
 is not representative of the data. So, you might get high accuracy, but your model
 will probably not perform that well when it comes to real-world samples, and you
 won’t be able to explain to your managers why.<br>
+
+In these cases, it’s better to look at other metrics such as precision.
+Before learning about precision, we need to know a few terms. Here we have
+assumed that chest x-ray images with pneumothorax are positive class (1) and
+without pneumothorax are negative class (0).<br>
+
+**True positive (TP)**: Given an image, if your model predicts the image has
+pneumothorax, and the actual target for that image has pneumothorax, it is
+considered a true positive.<br>
+
+**True negative (TN)**: Given an image, if your model predicts that the image does not
+have pneumothorax and the actual target says that it is a non-pneumothorax image,
+it is considered a true negative.<br>
+In simple words, if your model correctly predicts positive class, it is true positive,
+and if your model accurately predicts negative class, it is a true negative.<br>
+**False positive (FP)**: Given an image, if your model predicts pneumothorax and the
+actual target for that image is non- pneumothorax, it a false positive.<br>
+**False negative (FN)**: Given an image, if your model predicts non-pneumothorax
+and the actual target for that image is pneumothorax, it is a false negative.<br>
+
+In simple words, if your model incorrectly (or falsely) predicts positive class, it is
+a false positive. If your model incorrectly (or falsely) predicts negative class, it is a
+false negative.<br>
+
+Let’s look at implementations of these, one at a time.<br>
+
+``` python
+def true_positive(y_true, y_pred):
+"""
+Function to calculate True Positives
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: number of true positives
+"""
+# initialize
+tp = 0
+for yt, yp in zip(y_true, y_pred):
+if yt == 1 and yp == 1:
+tp += 1
+return tp
+def true_negative(y_true, y_pred):
+"""
+Function to calculate True Negatives
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: number of true negatives
+"""
+# initialize
+tn = 0
+for yt, yp in zip(y_true, y_pred):
+if yt == 0 and yp == 0:
+tn += 1
+return tn
+def false_positive(y_true, y_pred):
+"""
+Function to calculate False Positives
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: number of false positives
+"""
+# initialize
+fp = 0
+for yt, yp in zip(y_true, y_pred):
+if yt == 0 and yp == 1:
+fp += 1
+return fp
+def false_negative(y_true, y_pred):
+"""
+Function to calculate False Negatives
+:param y_true: list of true values
+:param y_pred: list of predicted values
+:return: number of false negatives
+"""
+# initialize
+fn = 0
+for yt, yp in zip(y_true, y_pred):
+if yt == 1 and yp == 0:
+fn += 1
+return fn
+
+```
+The way I have implemented these here is quite simple and works only for binary
+classification.<br>
+
+If we have to define accuracy using the terms described above, we can write:<br>
+
+                Accuracy Score = (TP + TN) / (TP + TN + FP + FN)
+                
