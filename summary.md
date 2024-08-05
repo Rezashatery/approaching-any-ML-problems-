@@ -866,3 +866,70 @@ precision += weighted_precision
 overall_precision = precision / len(y_true)
 return overall_precision
 ```
+implementation of weighted_f1:
+
+``` python
+    from collections import Counter
+import numpy as np
+def weighted_f1(y_true, y_pred):
+"""
+Function to calculate weighted f1 score
+:param y_true: list of true values
+:param y_proba: list of predicted values
+:return: weighted f1 score
+"""
+# find the number of classes by taking
+# length of unique values in true list
+num_classes = len(np.unique(y_true))
+# create class:sample count dictionary
+# it looks something like this:
+# {0: 20, 1:15, 2:21}
+class_counts = Counter(y_true)
+# initialize f1 to 0
+f1 = 0
+# loop over all classes
+for class_ in range(num_classes):
+# all classes except current are considered negative
+temp_true = [1 if p == class_ else 0 for p in y_true]
+temp_pred = [1 if p == class_ else 0 for p in y_pred]
+# calculate precision and recall for class
+p = precision(temp_true, temp_pred)
+r = recall(temp_true, temp_pred)
+# calculate
+if p + r !=
+temp_f1
+else:
+temp_f1
+f1 of class
+0:
+= 2 * p * r / (p + r)
+= 0
+# multiply f1 with count of samples in class
+weighted_f1 = class_counts[class_] * temp_f1
+# add to f1 precision
+f1 += weighted_f1
+# calculate overall F1 by dividing by
+# total number of samples
+overall_f1 = f1 / len(y_true)
+return overall_f1   
+```
+
+Thus, we have precision, recall and F1 implemented for multi-class problems. You
+can similarly convert AUC and log loss to multi-class formats too. This format of
+conversion is known as one-vs-all. I’m not going to implement them here as the
+implementation is quite similar to what we have already discussed.<br>
+In binary or multi-class classification, it is also quite popular to take a look at
+confusion matrix. Don’t be confused; it’s quite easy. A confusion matrix is nothing
+but a table of TP, FP, TN and FN. Using the confusion matrix, you can quickly see
+how many samples were misclassified and how many were classified correctly.
+One might argue that the confusion matrix should be covered quite early in this
+chapter, but I chose not to do it. If you understand TP, FP, TN, FN, precision, recall
+and AUC, it becomes quite easy to understand and interpret confusion matrix.<br>
+We can also expand the binary confusion matrix to a multi-class confusion matrix.
+How would that look like? If we have N classes, it will be a matrix of size NxN.
+For every class, we calculate the total number of samples that went to the class in
+concern and other classes.<br>
+A perfect confusion matrix should only be filled diagonally from left to right.<br>
+Confusion matrix gives an easy way to calculate different metrics that we have
+discussed before. Scikit-learn offers an easy and straightforward way to generate a
+confusion matrix.<br>
