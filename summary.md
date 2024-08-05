@@ -670,4 +670,94 @@ positive class is p, try substituting it with 1-p. This kind of AUC may also
 mean that there is some problem with your validation or data processing.
 - AUC = 0.5 implies that your predictions are random. So, for any binary
 classification problem, if I predict all targets as 0.5, I will get an AUC of
-0.5.
+0.5.<br>
+
+But what does AUC say about our model?
+
+Suppose you get an AUC of 0.85 when you build a model to detect pneumothorax
+from chest x-ray images. This means that if you select a random image from your
+dataset with pneumothorax (positive sample) and another random image without
+pneumothorax (negative sample), then the pneumothorax image will rank higher
+than a non-pneumothorax image with a probability of 0.85.<br>
+
+
+After calculating probabilities and AUC, you would want to make predictions on
+the test set. Depending on the problem and use-case, you might want to either have
+probabilities or actual classes. If you want to have probabilities, it’s effortless. You
+already have them. If you want to have classes, you need to select a threshold. In
+the case of binary classification, you can do something like the following.<br>
+                            Prediction = Probability >= Threshold
+
+Which means, that prediction is a new list which contains only binary variables. An
+item in prediction is 1 if the probability is greater than or equal to a given threshold
+else the value is 0.<br>
+And guess what, you can use the ROC curve to choose this threshold! The ROC
+curve will tell you how the threshold impacts false positive rate and true positive
+rate and thus, in turn, false positives and true positives. You should choose the
+threshold that is best suited for your problem and datasets.<br>
+
+AUC is a widely used metric for skewed binary classification tasks in the industry,
+and a metric everyone should know about. Once you understand the idea behind
+AUC, as explained in the paragraphs above, it is also easy to explain it to non-
+technical people who would probably be assessing your models in the industry.<br>
+
+Another important metric you should learn after learning AUC is log loss. In case
+of a binary classification problem, we define log loss as:<br>
+    Log Loss = - 1.0 * ( target * log(prediction) + (1 - target) * log(1 - prediction) )
+
+Where target is either 0 or 1 and prediction is a probability of a sample belonging
+to class 1.log loss punishes you for being very sure and very wrong.
+
+``` python
+import numpy as np
+def log_loss(y_true, y_proba):
+"""
+Function to calculate log loss
+:param y_true: list of true values
+:param y_proba: list of probabilities for 1
+:return: overall log loss
+"""
+# define an epsilon value
+# this can also be an input
+# this value is used to clip probabilities
+epsilon = 1e-15
+# initialize empty list to store
+# individual losses
+loss = []
+# loop over all true and predicted probability values
+for yt, yp in zip(y_true, y_proba):
+# adjust probability
+# 0 gets converted to 1e-15
+# 1 gets converted to 1-1e-15
+# Why? Think about it!
+yp = np.clip(yp, epsilon, 1 - epsilon)
+# calculate loss for one sample
+temp_loss = - 1.0 * (
+yt * np.log(yp)
++ (1 - yt) * np.log(1 - yp)
+)
+# add to loss list
+loss.append(temp_loss)
+# return mean loss over all samples
+return np.mean(loss)
+```
+
+Implementation of log loss is easy. Interpretation may seem a bit difficult. You must remember that log loss penalizes a lot more than other metrics.<br>
+For example, if you are 51% sure about a sample belonging to class 1, log loss
+would be:<br>
+                    - 1.0 * ( 1 * log(0.51) + (1 - 1) * log(1 – 0.51) ) = 0.67
+And if you are 49% sure for a sample belonging to class 0, log loss would be:<br>
+                    - 1.0 * ( 0 * log(0.49) + (1 - 0) * log(1 – 0.49) ) = 0.67
+
+So, even though we can choose a cut off at 0.5 and get perfect predictions, we will
+still have a very high log loss. So, when dealing with log loss, you need to be very
+careful; any non-confident prediction will have a very high log loss.<br>
+There are three different ways to calculate this which might get confusing from time
+to time. Let’s assume we are interested in precision first. We know that precision
+depends on true positives and false positives.<br>
+- Macro averaged precision: calculate precision for all classes individually
+and then average them
+- Micro averaged precision: calculate class wise true positive and false
+positive and then use that to calculate overall precision
+- Weighted precision: same as macro but in this case, it is weighted average
+depending on the number of items in each class
