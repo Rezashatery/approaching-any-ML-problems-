@@ -933,3 +933,74 @@ A perfect confusion matrix should only be filled diagonally from left to right.<
 Confusion matrix gives an easy way to calculate different metrics that we have
 discussed before. Scikit-learn offers an easy and straightforward way to generate a
 confusion matrix.<br>
+<br>
+So, until now, we have tackled metrics for binary and multi-class classification.
+Then comes another type of classification problem called multi-label
+classification. In multi-label classification, each sample can have one or more
+classes associated with it. One simple example of this type of problem would be a
+task in which you are asked to predict different objects in a given image.<br>
+The metrics for this type of classification problem are a bit different. Some suitable
+and most common metrics are:<br>
+
+- Precision at k (P@k)
+- Average precision at k (AP@k)
+- Mean average precision at k (MAP@k)
+- Log loss
+
+Let’s start with **precision at k or P@k**. One must not confuse this precision with
+the precision discussed earlier. If you have a list of original classes for a given
+sample and list of predicted classes for the same, precision is defined as the number
+of hits in the predicted list considering only top-k predictions, divided by k.
+If that’s confusing, it will become apparent with python code.<br>
+```python
+def pk(y_true, y_pred, k):
+"""
+This function calculates precision at k
+for a single sample
+:param y_true: list of values, actual classes
+:param y_pred: list of values, predicted classes
+:param k: the value for k
+:return: precision at a given value k
+"""
+# if k is 0, return 0. we should never have this
+# as k is always >= 1
+if k == 0:
+return 0
+# we are interested only in top-k predictions
+y_pred = y_pred[:k]
+# convert predictions to set
+pred_set = set(y_pred)
+# convert actual values to set
+true_set = set(y_true)
+# find common values
+common_values = pred_set.intersection(true_set)
+# return length of common values over k
+return len(common_values) / len(y_pred[:k])
+```
+
+With code, everything becomes much easier to understand.
+Now, we have average precision at k or AP@k. AP@k is calculated using P@k.
+For example, if we have to calculate AP@3, we calculate P@1, P@2 and P@3 and
+then divide the sum by 3.<br>
+Let’s see its implementation.<br>
+```python
+def apk(y_true, y_pred, k):
+"""
+This function calculates average precision at k
+for a single sample
+:param y_true: list of values, actual classes
+:param y_pred: list of values, predicted classes
+:return: average precision at a given value k
+"""
+# initialize p@k list of values
+pk_values = []
+# loop over all k. from 1 to k + 1
+for i in range(1, k + 1):
+# calculate p@i and append to list
+pk_values.append(pk(y_true, y_pred, i))
+# if we have no values in the list, return 0
+if len(pk_values) == 0:
+return 0
+# else, we return the sum of list over length of list
+return sum(pk_values) / len(pk_values)
+```
