@@ -340,6 +340,24 @@ scikit-learn. So you need to do that yourself.<br>
 ## Evaluation metrics
 When it comes to machine learning problems, you will encounter a lot of different
 types of metrics in the real world. Sometimes, people even end up creating metrics
-that suit the business problem. It’s out of the scope of this book to introduce and
-explain each and every type of metric. Instead, we will see some of the most
-common metrics that you can use when starting with your very first few projects.
+that suit the business problem. see some of the most common metrics that you can use when starting with your very first few projects.
+we will only focus on supervised.<br>
+If we talk about classification problems, the most common metrics used are:
+- Accuracy
+- Precision (P)
+- Recall (R)
+- F1 score (F1)
+- Area under the ROC (Receiver Operating Characteristic) curve or simply
+AUC (AUC)
+- Log loss
+- Precision at k (P@k)
+- Average precision at k (AP@k)
+- Mean average precision at k (MAP@k)
+When it comes to regression, the most commonly used evaluation metrics are:
+- Mean absolute error (MAE)
+- Mean squared error (MSE)
+- Root mean squared error (RMSE)
+- Root mean squared logarithmic error (RMSLE)
+- Mean percentage error (MPE)
+- Mean absolute percentage error (MAPE)
+- R 2
