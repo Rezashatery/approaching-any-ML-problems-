@@ -634,8 +634,40 @@ return score
 F1 score also ranges from 0 to 1, and a perfect prediction model has an F1 of 1. When dealing with datasets that have skewed targets, we should look at F1 (or precision and recall) instead of accuracy.<br>
 
 Then there are other crucial terms that we should know about.
-The first one is **TPR** or True Positive Rate, which is the same as recall.
+The first one is **TPR or True Positive Rate**, which is the same as recall.
 
                             TPR = TP / (TP + FN)
 
 TPR or recall is also known as **sensitivity**.
+
+And **FPR or False Positive Rate**, which is defined as:
+                            FPR = FP / (TN + FP)    
+
+And **1 - FPR** is known as **specificity or True Negative Rate or TNR**.<br>
+
+These are a lot of terms, but the most important ones out of these are only TPR and
+FPR.
+
+We can  get a TPR and FPR value for each threshold. we have TPR on the y-axis and FPR
+on the x-axis.<br>
+This curve is also known as the **Receiver Operating Characteristic (ROC)**. And
+if we calculate the area under this ROC curve, we are calculating another metric
+which is used very often when you have a dataset which has skewed binary targets.<br>
+
+This metric is known as the **Area Under ROC Curve** or **Area Under Curve** or
+just simply **AUC**. There are many ways to calculate the area under the ROC curve.<br>
+
+AUC values range from 0 to 1.<br>
+
+- AUC = 1 implies you have a perfect model. Most of the time, it means that
+you made some mistake with validation and should revisit data processing
+and validation pipeline of yours. If you didn’t make any mistakes, then
+congratulations, you have the best model one can have for the dataset you
+built it on.
+- AUC = 0 implies that your model is very bad (or very good!). Try inverting
+the probabilities for the predictions, for example, if your probability for the
+positive class is p, try substituting it with 1-p. This kind of AUC may also
+mean that there is some problem with your validation or data processing.
+- AUC = 0.5 implies that your predictions are random. So, for any binary
+classification problem, if I predict all targets as 0.5, I will get an AUC of
+0.5.
