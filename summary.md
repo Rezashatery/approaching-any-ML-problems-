@@ -1038,3 +1038,98 @@ mean column-wise log loss. Of course, there are other ways you can implement
 this, and you should explore it as you come across it.<br>
 
 ### Regression
+now we can move to regression metrics.<br>
+The most common metric in regression is error. Error is simple and very easy to
+understand.<br>
+                    Error = True Value – Predicted Value<br>
+Absolute error is just absolute of the above.<br>
+                    Absolute Error = Abs ( True Value – Predicted Value )<br>
+
+Then we have mean absolute error (MAE). It’s just mean of all absolute errors.
+
+``` python
+import numpy as np
+def mean_absolute_error(y_true, y_pred):
+"""
+This function calculates mae
+:param y_true: list of real numbers, true values
+:param y_pred: list of real numbers, predicted values
+:return: mean absolute error
+"""
+# initialize error at 0
+error = 0
+# loop over all samples in the true and predicted list
+for yt, yp in zip(y_true, y_pred):
+# calculate absolute error
+# and add to error
+error += np.abs(yt - yp)
+# return mean error
+return error / len(y_true)
+```
+
+Similarly, we have squared error and **mean squared error (MSE)**.
+                Squared Error = ( True Value – Predicted Value )^2
+
+And mean squared error (MSE) can be implemented as follows.
+
+``` python
+def mean_squared_error(y_true, y_pred):
+"""
+This function calculates mse
+:param y_true: list of real numbers, true values
+:param y_pred: list of real numbers, predicted values
+:return: mean squared error
+"""
+# initialize error at 0
+error = 0
+# loop over all samples in the true and predicted list
+for yt, yp in zip(y_true, y_pred):
+# calculate squared error
+# and add to error
+error += (yt - yp) ** 2
+# return mean error
+return error / len(y_true)
+```
+MSE and RMSE (root mean squared error) are the most popular metrics used in
+evaluating regression models.<br>
+                                RMSE = SQRT ( MSE )<br>
+
+
+And an absolute version of the same (and more common version) is known as mean
+absolute percentage error or MAPE.
+```python
+import numpy as np
+def mean_abs_percentage_error(y_true, y_pred):
+"""
+This function calculates MAPE
+:param y_true: list of real numbers, true values
+:param y_pred: list of real numbers, predicted values
+:return: mean absolute percentage error
+"""
+# initialize error at 0
+error = 0
+# loop over all samples in true and predicted list
+for yt, yp in zip(y_true, y_pred):
+# calculate percentage error
+# and add to error
+error += np.abs(yt - yp) / yt
+# return mean percentage error
+return error / len(y_true)
+```
+The best thing about regression is that there are only a few most popular metrics
+that can be applied to almost every regression problem. And it is much easier to
+understand when we compare it to classification metrics.
+Let’s talk about another regression metric known as **R^2 (R-squared)**, also known
+as the **coefficient of determination**.<br>
+
+In simple words, R-squared says how good your model fits the data. R-squared
+closer to 1.0 says that the model fits the data quite well, whereas closer 0 means
+that model isn’t that good. R-squared can also be negative when the model just
+makes absurd predictions.<br>
+
+The formula for R-squared is shown in figure 10, but as always a python
+implementation makes things more clear.
+
+$$
+R^2 = 1 - \frac{\sum_{i=1}^{N} \left(y_{ti} - y_{pi}\right)^2}{\sum_{i=1}^{N} \left(y_{ti} - y_{tmean}\right)^2}
+$$
