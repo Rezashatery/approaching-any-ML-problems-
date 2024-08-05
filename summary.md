@@ -1187,3 +1187,8 @@ some kind of clustering, it’s better to create or manually label the test set 
 it separate from everything that is going on in your modelling part. When you are
 done with clustering, you can evaluate the performance on the test set simply by
 using any of the supervised learning metrics.<br>
+
+
+Text simplification involves altering a text to make it easier to read or under-
+stand without changing its original meaning. The objective is to create content
+that is more accessible for specific users or systems. discover criteria based on the dataset for simple and complex sentences, and create ML model for categorizing simple and complex sentences. Also, create new dataset for simple and complex sentences based on the criteria that are found in the first dataset using GPT4o and check the ML models for categorizing simple and complex sentences. and Also use the same criteria for Italian dataset and check the ML models for categorizing simple and complex sentences.
