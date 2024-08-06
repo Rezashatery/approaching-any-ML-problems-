@@ -1577,3 +1577,148 @@ o XGBoost
 o GBM
 o LightGBM<br>
 
+
+
+
+This type of encoding cannot be used in linear models, support vector machines or
+neural networks as they expect data to be normalized (or standardized).<br>
+For these types of models, we can binarize the data.<br>
+Freezing --> 0 --> 0 0 0<br>
+Warm --> 1 --> 0 0 1<br>
+Cold --> 2 --> 0 1 0<br>
+Boiling Hot --> 3 --> 0 1 1<br>
+Hot --> 4 --> 1 0 0<br>
+Lava Hot --> 5 --> 1 0 1<br>
+This is just converting the categories to numbers and then converting them to their
+binary representation. We are thus splitting one feature into three (in this case)
+features (or columns). If we have more categories, we might end up splitting into a
+lot more columns.<br>
+
+It becomes easy to store lots of binarized variables like this if we store them in a
+sparse format. A sparse format is nothing but a representation or way of storing
+data in memory in which you do not store all the values but only the values that
+matter. In the case of binary variables described above, all that matters is where we
+have ones (1s).<br>
+
+Even though the sparse representation of binarized features takes much less
+memory than its dense representation, there is another transformation for
+categorical variables that takes even less memory. This is known as **One Hot Encoding**.<br>
+One hot encoding is a binary encoding too in the sense that there are only two
+values, 0s and 1s. However, it must be noted that it’s not a binary representation.<br>
+
+These three methods are the most important ways to handle categorical variables.
+There are, however, many other different methods you can use to handle categorical
+variables. An example of one such method is about converting categorical variables
+to numerical variables.<br>
+
+So which categories should we combine? Well, there isn't an easy answer to that. It
+depends on your data and the types of features. Some domain knowledge might be
+useful for creating features like this. But if you don’t have concerns about memory
+and CPU usage, you can go for a greedy approach where you can create many such
+combinations and then use a model to decide which features are useful and keep
+them.<br>
+Whenever you get categorical variables, follow these simple steps:
+- fill the NaN values (this is very important!)
+- convert them to integers by applying label encoding using LabelEncoder
+of scikit-learn or by using a mapping dictionary. If you didn’t fill up NaN
+values with something, you might have to take care of them in this step.<br>
+- create one-hot encoding. Yes, you can skip binarization!
+- go for modelling! I mean the machine learning one. Not on the ramp.<br>
+Handling NaN data in categorical features is quite essential else you can get the
+infamous error from scikit-learn’s LabelEncoder:<br>
+ValueError: y contains previously unseen labels: [nan, nan, nan, nan,
+nan, nan, nan, nan]<br>
+This simply means that when you are transforming the test data, you have NaN
+values in it. It’s because you forgot to handle them during training. One simple way
+to handle NaN values would be to drop them. Well, it’s simple but not ideal. NaN
+values may have a lot of information in them, and you will lose it if you just drop
+these values. There might also be many situations where most of your data has NaN
+values, and thus, you cannot drop rows/samples with NaN values. Another way of
+handling NaN values is to treat them as a completely new category. This is the most
+preferred way of handling NaN values. And can be achieved in a very simple
+manner if you are using pandas.<br>
+in this dataset there were 18075 NaN values in this column that we didn’t even consider
+using previously. With the addition of this new category, the total number of
+categories have now increased from 6 to 7. This is okay because now when we build
+our models, we will also consider NaN. The more relevant information we have,
+the better the model is.<br>
+
+Let’s assume that ord_2 did not have any NaN values. We see that all categories in
+this column have a significant count. There are no “rare” categories; i.e. the
+categories which appear only a small percentage of the total number of samples.
+Now, let’s assume that you have deployed this model which uses this column in
+production and when the model or the project is live, you get a category in ord_2
+column that is not present in train. You model pipeline, in this case, will throw an
+error and there is nothing that you can do about it. If this happens, then probably
+something is wrong with your pipeline in production. If this is expected, then you
+must modify your model pipeline and include a new category to these six categories.<br>
+This new category is known as the “rare” category. A **rare category** is a category
+which is not seen very often and can include many different categories. You can
+also try to “predict” the unknown category by using a nearest neighbour model.
+Remember, if you predict this category, it will become one of the categories from
+the training data.<br>
+
+When we have a dataset to have such a rare category, we can build a simple model
+that’s trained on all features except rare category. Thus, you will be creating a model that
+predicts rare category when it’s not known or not available in training. I can’t say if this kind
+of model is going to give you an excellent performance but might be able to handle
+those missing values in test set or live data and one can’t say without trying just like
+everything else when it comes to machine learning.<br>
+If you have a fixed test set, you can add your test data to training to know about the
+categories in a given feature. This is very similar to semi-supervised learning in
+which you use data which is not available for training to improve your model. This
+will also take care of rare values that appear very less number of times in training
+data but are in abundance in test data. Your model will be more robust.<br>
+Many people think that this idea overfits. It may or may not overfit. There is a
+simple fix for that. If you design your cross-validation in such a way that it
+replicates the prediction process when you run your model on test data, then it’s
+never going to overfit. It means that the first step should be the separation of folds,
+and in each fold, you should apply the same pre-processing that you want to apply
+to test data. Suppose you want to concatenate training and test data, then in each
+fold you must concatenate training and validation data and also make sure that your
+validation dataset replicates the test set. In this specific case, you must design your
+validation sets in such a way that it has categories which are “unseen” in the training
+set.<br>
+
+```python
+import pandas as pd
+from sklearn import preprocessing
+# read training data
+train = pd.read_csv("../input/cat_train.csv")
+#read test data
+test = pd.read_csv("../input/cat_test.csv")
+# create a fake target column for test data
+# since this column doesn't exist
+test.loc[:, "target"] = -1
+# concatenate both training and test data
+data = pd.concat([train, test]).reset_index(drop=True)
+# make a list of features we are interested in
+# id and target is something we should not encode
+features = [x for x in train.columns if x not in ["id", "target"]]
+# loop over the features list
+for feat in features:
+# create a new instance of LabelEncoder for each feature
+lbl_enc = preprocessing.LabelEncoder()
+# note the trick here
+# since its categorical data, we fillna with a string
+# and we convert all the data to string type
+# so, no matter its int or float, its converted to string
+# int/float but categorical!!!
+temp_col = data[feat].fillna("NONE").astype(str).values
+# we can use fit_transform here as we do not
+# have any extra test data that we need to
+# transform on separately
+data.loc[:, feat] = lbl_enc.fit_transform(temp_col)
+# split the training and test data again
+train = data[data.target != -1].reset_index(drop=True)
+test = data[data.target == -1].reset_index(drop=True)
+```
+This trick works when you have a problem where you already have the test dataset.
+It must be noted that this trick will not work in a live setting. For example, let’s say
+you are in a company that builds a real-time bidding solution (RTB). RTB systems
+bid on every user they see online to buy ad space. The features that can be used for
+such a model may include pages viewed in a website. Let’s assume that features are
+the last five categories/pages visited by the user. In this case, if the website
+introduces new categories, we will no longer be able to predict accurately. Our
+model, in this case, will fail. A situation like this can be avoided by using an
+**unknown** category.<br>
