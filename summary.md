@@ -1722,3 +1722,182 @@ the last five categories/pages visited by the user. In this case, if the website
 introduces new categories, we will no longer be able to predict accurately. Our
 model, in this case, will fail. A situation like this can be avoided by using an
 **unknown** category.<br>
+
+
+In our cat-in-the-dat dataset, we already have unknowns in ord_2 column.<br>
+We can treat **NONE** as unknown. So, if during live testing, we get new categories
+that we have not seen before, we will mark them as **NONE**.<br>
+This is very similar to natural language processing problems. We always build a
+model based on a fixed vocabulary. Increasing the size of the vocabulary increases
+the size of the model. Transformer models like BERT are trained on ~30000 words
+(for English). So, when we have a new word coming in, we mark it as UNK
+(unknown).<br>
+So, you can either assume that your test data will have the same categories as
+training or you can introduce a rare or unknown category to training to take care of
+new categories in test data.<br>
+We can now define our criteria for calling a value “rare”. Let’s say the requirement
+for a value being rare in this column is a count of less than 2000. So, it seems, J and
+L can be marked as rare values. With pandas, it is quite easy to replace categories
+based on count threshold.<br>
+We say that wherever the value count for a certain category is less than 2000,
+replace it with rare. So, now, when it comes to test data, all the new, unseen
+categories will be mapped to “RARE”, and all missing values will be mapped to
+“NONE”.<br>
+This approach will also ensure that the model works in a live setting, even if you
+have new categories.<br>
+Now we have everything we need to approach any kind of problem with categorical
+variables in it. Let’s try building our first model and try to improve its performance
+in a step-wise manner.<br>
+Before going to any kind of model building, it’s essential to take care of cross-
+validation. We have already seen the label/target distribution, and we know that it
+is a binary classification problem with skewed targets. Thus, we will be using
+StratifiedKFold to split the data here.<br>
+```python
+# create_folds.py
+# import pandas and model_selection module of scikit-learn
+import pandas as pd
+from sklearn import model_selection
+if __name__ == "__main__":
+# Read training data
+df = pd.read_csv("../input/cat_train.csv")
+# we create a new column called kfold and fill it with -1
+df["kfold"] = -1
+# the next step is to randomize the rows of the data
+df = df.sample(frac=1).reset_index(drop=True)
+# fetch labels
+y = df.target.values
+# initiate the kfold class from model_selection module
+kf = model_selection.StratifiedKFold(n_splits=5)
+# fill the new kfold column
+for f, (t_, v_) in enumerate(kf.split(X=df, y=y)):
+df.loc[v_, 'kfold'] = f
+# save the new csv with kfold column
+df.to_csv("../input/cat_train_folds.csv", index=False)
+```
+We can now check our new folds csv to see the number of samples per fold:
+```python
+In [X]: import pandas as pd
+In [X]: df = pd.read_csv("../input/cat_train_folds.csv")
+In [X]: df.kfold.value_counts()
+Out[X]:
+4
+120000
+3
+120000
+2
+120000
+1
+120000
+0
+120000
+Name: kfold, dtype: int64
+```
+
+All folds have 120000 samples. This is expected as training data has 600000
+samples, and we made five folds. So far, so good.<br>
+One of the simplest models we can build is by one-hot encoding all the data and
+using logistic regression.<br>
+```python
+# ohe_logres.py
+import pandas as pd
+from sklearn import linear_model
+from sklearn import metrics
+from sklearn import preprocessing
+def run(fold):
+# load the full training data with folds
+df = pd.read_csv("../input/cat_train_folds.csv")
+# all columns are features except id, target and kfold columns
+features = [
+f for f in df.columns if f not in ("id", "target", "kfold")
+]
+# fill all NaN values with NONE
+# note that I am converting all columns to "strings"
+# it doesn’t matter because all are categories
+for col in features:
+df.loc[:, col] = df[col].astype(str).fillna("NONE")
+# get training data using folds
+df_train = df[df.kfold != fold].reset_index(drop=True)
+# get validation data using folds
+df_valid = df[df.kfold == fold].reset_index(drop=True)
+# initialize OneHotEncoder from scikit-learn
+ohe = preprocessing.OneHotEncoder()
+# fit ohe on training + validation features
+full_data = pd.concat(
+[df_train[features], df_valid[features]],
+axis=0
+)
+ohe.fit(full_data[features])
+# transform training data
+x_train = ohe.transform(df_train[features])
+# transform validation data
+x_valid = ohe.transform(df_valid[features])
+# initialize Logistic Regression model
+model = linear_model.LogisticRegression()
+# fit model on training data (ohe)
+model.fit(x_train, df_train.target.values)
+# predict on validation data
+# we need the probability values as we are calculating AUC
+# we will use the probability of 1s
+valid_preds = model.predict_proba(x_valid)[:, 1]
+# get roc auc score
+auc = metrics.roc_auc_score(df_valid.target.values, valid_preds)
+# print auc
+print(auc)
+if __name__ == "__main__":
+# run function for fold = 0
+# we can just replace this number and
+# run this for any fold
+run(0)
+```
+We have created a function that splits data into training and validation, given a fold
+number, handles NaN values, applies one-hot encoding on all the data and trains a
+simple Logistic Regression model.<br>
+
+There are a few warnings. It seems logistic regression did not converge for the max
+number of iterations. We didn’t play with the parameters, so that is fine. We see
+that AUC is ~ 0.785.<br>
+Please note that we are not making a lot of changes and that’s why I have shown
+only some lines of the code; some of which have changes.<br>
+This gives:<br>
+```python
+❯ python -W ignore ohe_logres.py
+Fold = 0, AUC = 0.7847865042255127
+Fold = 1, AUC = 0.7853553605899214
+Fold = 2, AUC = 0.7879321942914885
+Fold = 3, AUC = 0.7870315929550808
+Fold = 4, AUC = 0.7864668243125608
+```
+We see that AUC scores are quite stable across all folds. The average AUC is
+0.78631449527. Quite good for our first model!<br>
+Many people will start this kind of problem with a tree-based model, such as
+random forest. For applying random forest in this dataset, instead of one-hot
+encoding, we can use label encoding and convert every feature in every column to
+an integer as discussed previously.<br>
+And this is a reason why we should always start with simple models first. A fan of
+random forest would begin with it here and will ignore logistic regression model
+thinking it’s a very simple model that cannot bring any value better than random
+forest. That kind of person will make a huge mistake. In our implementation of
+random forest, the folds take a much longer time to complete compared to logistic
+regression. So, we are not only losing on AUC but also taking much longer to
+complete the training. Please note that inference is also time-consuming with
+random forest and it also takes much larger space.<br>
+If we want, we can also try to run random forest on sparse one-hot encoded data,
+but that is going to take a lot of time. We can also try reducing the sparse one-hot
+encoded matrices using singular value decomposition. This is a very common
+method of extracting topics in natural language processing.<br>
+Please note that we do not need to normalize data when we use tree-based models.<br>
+
+One more way of feature engineering from categorical features is to use target
+encoding. However, you have to be very careful here as this might overfit your
+model. Target encoding is a technique in which you map each category in a given
+feature to its mean target value, but this must always be done in a cross-validated
+manner. It means that the first thing you do is create the folds, and then use those
+folds to create target encoding features for different columns of the data in the same
+way you fit and predict the model on folds. So, if you have created 5 folds, you
+have to create target encoding 5 times such that in the end, you have encoding for
+variables in each fold which are not derived from the same fold. And then when
+you fit your model, you must use the same folds again. Target encoding for unseen
+test data can be derived from the full training data or can be an average of all the 5
+folds.you must be very careful when using target encoding as it is too prone to overfitting. When we use target
+encoding, it’s better to use some kind of smoothing or adding noise in the encoded values. Scikit-learn has contrib repository which has target encoding with smoothing, or you can create your own smoothing. Smoothing introduces some
+kind of regularization that helps with not overfitting the model. It’s not very difficult.<br>
