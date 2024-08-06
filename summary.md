@@ -2441,3 +2441,35 @@ will fit a given model each time it evaluates a feature. The computational cost
 associated with this kind of method is very high. It will also take a lot of time for
 this kind of feature selection to finish. And if you do not use this feature selection
 properly, then you might even end up overfitting the model.<br>
+
+
+Another greedy approach is known as **recursive feature elimination (RFE)**. In the
+previous method, we started with one feature and kept adding new features, but in
+RFE, we start with all features and keep removing one feature in every iteration that
+provides the least value to a given model. But how to do we know which feature
+offers the least value? Well, if we use models like linear support vector machine
+(SVM) or logistic regression, we get a coefficient for each feature which decides
+the importance of the features. In case of any tree-based models, we get feature
+importance in place of coefficients. In each iteration, we can eliminate the least
+important feature and keep eliminating it until we reach the number of features
+needed. So, yes, we have the ability to decide how many features we want to keep.<br>
+When we are doing recursive feature elimination, in each iteration, we remove the
+feature which has the feature importance or the feature which has a coefficient
+close to 0. Please remember that when you use a model like logistic regression for
+binary classification, the coefficients for features are more positive if they are
+important for the positive class and more negative if they are important for the
+negative class. It’s very easy to modify our greedy feature selection class to create
+a new class for recursive feature elimination, but scikit-learn also provides RFE
+out of the box.<br>
+We saw two different greedy ways to select features from a model. But you can also
+fit the model to the data and select features from the model by the feature
+coefficients or the importance of features. If you use coefficients, you can select
+a threshold, and if the coefficient is above that threshold, you can keep the feature
+else eliminate it.<br>
+Well, selecting the best features from the model is nothing new. You can choose
+features from one model and use another model to train. For example, you can use
+Logistic Regression coefficients to select the features and then use Random Forest
+to train the model on chosen features. Scikit-learn also offers SelectFromModel
+class that helps you choose features directly from a given model. You can also
+specify the threshold for coefficients or feature importance if you want and the
+maximum number of features you want to select.
