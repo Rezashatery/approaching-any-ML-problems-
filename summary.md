@@ -2260,3 +2260,184 @@ is log transformation.
 there is a feature which is a special feature with a very high variance. Compared to other features that
 have a low variance (let’s assume that). Thus, we would want to reduce the variance
 of this column, and that can be done by taking a log transformation.And we can apply log(1 + x) to this column to reduce its variance.<br>
+
+
+Sometimes, instead of log, you can also take exponential. A very interesting case is
+when you use a log-based evaluation metric, for example, RMSLE. In that case,
+you can train on log-transformed targets and convert back to original using
+exponential on the prediction. That would help optimize the model for the metric.
+Most of the time, these kinds of numerical features are created based on intuition.
+There is no formula. If you are working in an industry, you will create your
+industry-specific features.<br>
+When dealing with both categorical and numerical variables, you might encounter
+missing values. We saw some ways to handle missing values in categorical features
+in the previous chapter, but there are many more ways to handle missing/NaN
+values. This is also considered feature engineering.<br>
+For categorical features, let’s keep it super simple. If you ever encounter missing
+values in categorical features, treat is as a new category! As simple as this is, it
+(almost) always works!<br>
+
+One way to fill missing values in numerical data would be to choose a value that
+does not appear in the specific feature and fill using that. For example, let’s say 0
+is not seen in the feature. So, we fill all the missing values using 0. This is one of
+the ways but might not be the most effective. One of the methods that works better
+than filling 0s for numerical data is to fill with mean instead. You can also try to fill
+with the median of all the values for that feature, or you can use the most common
+value to fill the missing values. There are just so many ways to do this.<br>
+
+A fancy way of filling in the missing values would be to use a k-nearest neighbour
+method. You can select a sample with missing values and find the nearest
+neighbours utilising some kind of distance metric, for example, Euclidean distance.
+Then you can take the mean of all nearest neighbours and fill up the missing value.<br>
+Another way of imputing missing values in a column would be to train a regression
+model that tries to predict missing values in a column based on other columns. So,
+you start with one column that has a missing value and treat this column as the
+target column for regression model without the missing values. Using all the other
+columns, you now train a model on samples for which there is no missing value in
+the concerned column and then try to predict target (the same column) for the
+samples that were removed earlier. This way, you have a more robust model based
+imputation.<br>
+Always remember that imputing values for tree-based models is unnecessary as they
+can handle it themselves. And always remember to scale or normalize your
+features if you are using linear models like logistic regression or a model like SVM.<br>
+
+## Feature selection
+When you are done creating hundreds of thousands of features, it’s time for
+selecting a few of them. Well, we should never create hundreds of thousands of
+useless features. Having too many features pose a problem well known as the curse
+of dimensionality. If you have a lot of features, you must also have a lot of training
+samples to capture all the features. What’s considered a “lot” is not defined
+correctly and is up to you to figure out by validating your models properly and
+checking how much time it takes to train your models.<br>
+The simplest form of selecting features would be to remove features with very
+low variance. If the features have a very low variance (i.e. very close to 0), they
+are close to being constant and thus, do not add any value to any model at all. It
+would just be nice to get rid of them and hence lower the complexity. Please note
+that the variance also depends on scaling of the data. Scikit-learn has an
+implementation for VarianceThreshold that does precisely this.<br>
+```python
+from sklearn.feature_selection import VarianceThreshold
+data = ...
+var_thresh = VarianceThreshold(threshold=0.1)
+transformed_data = var_thresh.fit_transform(data)
+# transformed data will have all columns with variance less
+# than 0.1 removed
+```
+We can also remove features which have a high correlation. For calculating the
+correlation between different numerical features, you can use the Pearson
+correlation.
+```python
+import pandas as pd
+from sklearn.datasets import fetch_california_housing
+# fetch a regression dataset
+data = fetch_california_housing()
+X = data["data"]
+col_names = data["feature_names"]
+y = data["target"]
+# convert to pandas dataframe
+df = pd.DataFrame(X, columns=col_names)
+# introduce a highly correlated column
+df.loc[:, "MedInc_Sqrt"] = df.MedInc.apply(np.sqrt)
+# get correlation matrix (pearson)
+df.corr()
+```
+When we  see that the two features are highly correlated to each other we can remove one of them. <br>
+And now we can move to some univariate ways of feature selection. Univariate
+feature selection is nothing but a scoring of each feature against a given target.
+Mutual information, ANOVA F-test and chi 2 are some of the most popular
+methods for univariate feature selection. There are two ways of using these in scikit-
+learn.<br>
+- SelectKBest: It keeps the top-k scoring features
+- SelectPercentile: It keeps the top features which are in a percentage
+specified by the user<br>
+It must be noted that you can use chi 2 only for data which is non-negative in nature.
+This is a particularly useful feature selection technique in natural language
+processing when we have a bag of words or tf-idf based features. It’s best to create
+a wrapper for univariate feature selection that you can use for almost any new
+problem.<br>
+
+```python
+from sklearn.feature_selection import chi2
+from sklearn.feature_selection import f_classif
+from sklearn.feature_selection import f_regression
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_regression
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import SelectPercentile
+class UnivariateFeatureSelction:
+def __init__(self, n_features, problem_type, scoring):
+"""
+Custom univariate feature selection wrapper on
+different univariate feature selection models from
+scikit-learn.
+:param n_features: SelectPercentile if float else SelectKBest
+:param problem_type: classification or regression
+:param scoring: scoring function, string
+"""
+# for a given problem type, there are only
+# a few valid scoring methods
+# you can extend this with your own custom
+# methods if you wish
+if problem_type == "classification":
+valid_scoring = {
+"f_classif": f_classif,
+"chi2": chi2,
+"mutual_info_classif": mutual_info_classif
+}
+else:
+valid_scoring = {
+"f_regression": f_regression,
+"mutual_info_regression": mutual_info_regression
+}
+# raise exception if we do not have a valid scoring method
+if scoring not in valid_scoring:
+raise Exception("Invalid scoring function")
+# if n_features is int, we use selectkbest
+# if n_features is float, we use selectpercentile
+# please note that it is int in both cases in sklearn
+if isinstance(n_features, int):
+self.selection = SelectKBest(
+valid_scoring[scoring],
+k=n_features
+)
+elif isinstance(n_features, float):
+self.selection = SelectPercentile(
+valid_scoring[scoring],
+percentile=int(n_features * 100)
+)
+else:
+raise Exception("Invalid type of feature")
+# same fit function
+def fit(self, X, y):
+return self.selection.fit(X, y)
+# same transform function
+def transform(self, X):
+return self.selection.transform(X)
+# same fit_transform function
+def fit_transform(self, X, y):
+return self.selection.fit_transform(X, y)
+
+ufs = UnivariateFeatureSelction(
+n_features=0.1,
+problem_type="regression",
+scoring="f_regression"
+)
+ufs.fit(X, y)
+X_transformed = ufs.transform(X)
+```
+
+That should take care of most of your univariate feature selection needs. Please note
+that it’s usually better to create less and important features than to create hundreds
+of features in the first place. Univariate feature selection may not always perform
+well. Most of the time, people prefer doing feature selection using a machine
+learning model. Let’s see how that is done.<br>
+The simplest form of feature selection that uses a model for selection is known as
+**greedy feature selection**. In greedy feature selection, the first step is to choose a
+model. The second step is to select a loss/scoring function. And the third and final
+step is to iteratively evaluate each feature and add it to the list of “good” features if
+it improves loss/score. It can’t get simpler than this. But you must keep in mind that
+this is known as greedy feature selection for a reason. This feature selection process
+will fit a given model each time it evaluates a feature. The computational cost
+associated with this kind of method is very high. It will also take a lot of time for
+this kind of feature selection to finish. And if you do not use this feature selection
+properly, then you might even end up overfitting the model.<br>
