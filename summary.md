@@ -2473,3 +2473,98 @@ to train the model on chosen features. Scikit-learn also offers SelectFromModel
 class that helps you choose features directly from a given model. You can also
 specify the threshold for coefficients or feature importance if you want and the
 maximum number of features you want to select.
+
+
+## Hyperparameter optimization
+
+With great models, comes the great problem of optimizing hyper-parameters to get
+the best scoring model. So, what is this hyper-parameter optimization? Suppose
+there is a simple pipeline for your machine learning project. There is a dataset, you
+directly apply a model, and then you have results. The parameters that the model
+has here are known as hyper-parameters, i.e. the parameters that control the
+training/fitting process of the model. If we train a linear regression with SGD,
+parameters of a model are the slope and the bias and hyperparameter is learning
+rate. You will notice that I use these terms interchangeably in this chapter and
+throughout this book. Let’s say there are three parameters a, b, c in the model, and
+all these parameters can be integers between 1 and 10. A “correct” combination of
+these parameters will provide you with the best result. So, it’s kind of like a suitcase
+with a 3-dial combination lock. However, in 3 dial combination lock has only one
+correct answer. The model has many right answers. So, how would you find the
+best parameters? A method would be to evaluate all the combinations and see which
+one improves the metric.<br>
+Let’s look at the random forest model from scikit-learn.
+```python
+RandomForestClassifier(
+n_estimators=100,
+criterion='gini',
+max_depth=None,
+min_samples_split=2,
+min_samples_leaf=1,
+min_weight_fraction_leaf=0.0,
+max_features='auto',
+max_leaf_nodes=None,
+min_impurity_decrease=0.0,
+min_impurity_split=None,
+bootstrap=True,
+oob_score=False,
+n_jobs=None,
+random_state=None,
+verbose=0,
+warm_start=False,
+class_weight=None,
+ccp_alpha=0.0,
+max_samples=None,
+)
+```
+There are nineteen parameters, and all the combinations of all these parameters for
+all the values they can assume are going to be infinite. Normally, we don’t have the
+resource and time to do this. Thus, we specify a grid of parameters. A search over
+this grid to find the best combination of parameters is known as grid search. We
+can say that n_estimators can be 100, 200, 250, 300, 400, 500; max_depth can be
+1, 2, 5, 7, 11, 15 and criterion can be gini or entropy. These may not look like a lot
+of parameters, but it would take a lot of time for computation if the dataset is too
+large.We can make this grid search work by creating three for loops like before and calculating the score on the validation set. It must also be noted that if you have k-fold cross-validation, you need even more loops which implies even more time to
+find the perfect parameters. Grid search is therefore not very popular.<br>
+Random search is faster than grid search if the number of iterations is less. Using
+these two, you can find the optimal (?) parameters for all kinds of models as long
+as they have a fit and predict function, which is the standard of scikit-learn.
+Sometimes, you might want to use a pipeline. For example, let’s say that we are
+dealing with a multiclass classification problem. In this problem, the training data
+consists of two text columns, and you are required to build a model to predict the
+class. Let’s assume that the pipeline you choose is to first apply tf-idf in a semi-
+supervised manner and then use SVD with SVM classifier. Now, the problem is we
+have to select the components of SVD and also need to tune the parameters of SVM.
+How to do this is shown in the following snippet.<br>
+
+The pipeline shown here has SVD (Singular Value Decomposition), standard
+scaling and an SVM (Support Vector Machines) model. Please note that you won’t
+be able to run the above code as it is as training data is not available.
+When we go into advanced hyperparameter optimization techniques, we can take a
+look at **minimization of functions** using different kinds of minimization
+algorithms. This can be achieved by using many minimization functions such as
+downhill simplex algorithm, Nelder-Mead optimization, using a Bayesian
+technique with Gaussian process for finding optimal parameters or by using a
+genetic algorithm. I will talk more about the application of downhill simplex and
+Nelder-Mead in ensembling and stacking chapter. First, let’s see how the gaussian
+process can be used for hyper-parameter optimization. These kinds of algorithms
+need a function they can optimize. Most of the time, it’s about the minimization of
+this function, like we **minimize loss**.<br>
+So, let’s say, you want to find the best parameters for best accuracy and obviously,
+the more the accuracy is better. Now we cannot minimize the accuracy, but we can
+minimize it when we multiply it by -1. This way, we are minimizing the negative
+of accuracy, but in fact, we are maximizing accuracy. Using &**Bayesian optimization with gaussian process** can be accomplished by using gp_minimize
+function from scikit-optimize (skopt) library.<br>
+There are many libraries available that offer hyperparameter optimization. scikit-
+optimize is one such library that you can use. Another useful library for
+hyperparameter optimization is hyperopt. hyperopt uses Tree-structured Parzen
+Estimator (TPE) to find the most optimal parameters.<br>
+Once you get better with hand-tuning the parameters, you might not even need any
+automated hyper-parameter tuning. When you create large models or introduce a
+lot of features, you also make it susceptible to overfitting the training data. To avoid
+overfitting, you need to introduce noise in training data features or penalize the cost
+function. This penalization is called **regularization** and helps with generalizing the
+model. In linear models, the most common types of regularizations are L1 and L2.
+L1 is also known as Lasso regression and L2 as Ridge regression. When it comes
+to neural networks, we use dropouts, the addition of augmentations, noise, etc. to
+regularize our models. Using hyper-parameter optimization, you can also find the
+correct penalty to use.
