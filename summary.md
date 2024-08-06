@@ -1467,3 +1467,35 @@ fold=args.fold,
 model=args.model
 )
 ```
+
+There are a few major changes to train.py:
+• import model_dispatcher
+• add --model argument to ArgumentParser
+• add model argument to run() function
+• use the dispatcher to fetch the model given the name<br>
+Now, if you add a new model, all you have to do is make changes to
+model_dispatcher.py. Let’s try adding random forest and see what happens to our
+accuracy.<br>
+```python
+# model_dispatcher.py
+from sklearn import ensemble
+from sklearn import tree
+models = {
+"decision_tree_gini": tree.DecisionTreeClassifier(
+criterion="gini"
+),
+"decision_tree_entropy": tree.DecisionTreeClassifier(
+criterion="entropy"
+),
+"rf": ensemble.RandomForestClassifier(),
+}
+```
+❯ python train.py --fold 0 --model rf
+Fold=0, Accuracy=0.9670833333333333
+<br>
+And the scores look like the following.<br>
+Fold=0, Accuracy=0.9674166666666667<br>
+Fold=1, Accuracy=0.9698333333333333<br>
+Fold=2, Accuracy=0.96575<br>
+Fold=3, Accuracy=0.9684166666666667<br>
+Fold=4, Accuracy=0.9666666666666667<br>
