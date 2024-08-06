@@ -1192,3 +1192,118 @@ using any of the supervised learning metrics.<br>
 Text simplification involves altering a text to make it easier to read or under-
 stand without changing its original meaning. The objective is to create content
 that is more accessible for specific users or systems. discover criteria based on the dataset for simple and complex sentences, and create ML model for categorizing simple and complex sentences. Also, create new dataset for simple and complex sentences based on the criteria that are found in the first dataset using GPT4o and check the ML models for categorizing simple and complex sentences. and Also use the same criteria for Italian dataset and check the ML models for categorizing simple and complex sentences.
+
+
+## Arranging machine learning projects
+Let’s look at the structure of the files first of all. For any project that you are doing, create a new folder. For this example, I am calling the project “project”.<br>
+
+The inside of the project folder should look something like the following.<br>
+├── input
+│
+    ├── train.csv
+│
+    └── test.csv
+├── src
+│
+    ├── create_folds.py
+│
+    ├── train.py
+│
+    ├── inference.py
+│
+    ├── models.py
+│
+    ├── config.py
+│
+    └── model_dispatcher.py
+├── models
+│
+    ├── model_rf.bin
+│
+    └── model_et.bin
+├── notebooks
+│
+    ├── exploration.ipynb
+│
+    └── check_data.ipynb
+├── README.md
+└── LICENSE
+
+
+
+Let’s see what these folders and file are about.<br>
+input/: This folder consists of all the input files and data for your machine learning
+project. If you are working on NLP projects, you can keep your embeddings here.
+If you are working on image projects, all images go to a subfolder inside this folder.<br>
+src/: We will keep all the python scripts associated with the project here. If I talk
+about a python script, i.e. any *.py file, it is stored in the src folder.<br>
+models/: This folder keeps all the trained models.<br>
+notebooks/: All jupyter notebooks (i.e. any *.ipynb file) are stored in the notebooks
+folder.<br>
+README.md: This is a markdown file where you can describe your project and
+write instructions on how to train the model or to serve this in a production
+environment.<br>
+LICENSE: This is a simple text file that consists of a license for the project, such as
+MIT, Apache, etc. Going into details of the licenses is beyond the scope of this
+book.<br>
+Let’s assume you are building a model to classify MNIST dataset, we will be using the CSV format of the dataset.<br>
+In this format of the dataset, each row of the CSV consists of the label of the image
+and 784 pixel values ranging from 0 to 255. The dataset consists of 60000 images
+in this format. We can use pandas to read this data format easily.<br>
+We don’t need much more exploration for this dataset. We already know what we
+have, and there is no need to make plots on different pixel values. We can thus use
+accuracy/F1 as metrics. This is the first step when approaching a machine learning
+problem: **decide the metric!**.<br>
+Please note that the training CSV file is located in the input/ folder and is called
+mnist_train.csv.Please note that the training CSV file is located in the input/ folder and is called
+mnist_train.csv.<br>
+The first script that one should create is **create_folds.py**.
+This will create a new file in the input/ folder called mnist_train_folds.csv, and it’s
+the same as mnist_train.csv. The only differences are that this CSV is shuffled and
+has a new column called kfold.<br>
+Once we have decided what kind of evaluation metric we want to use and have
+created the folds, we are good to go with creating a basic model. This is done in
+train.py.   
+```python
+# src/train.py
+import joblib
+import pandas as pd
+from sklearn import metrics
+from sklearn import tree
+def run(fold):
+# read the training data with folds
+df = pd.read_csv("../input/mnist_train_folds.csv")
+# training data is where kfold is not equal to provided fold
+# also, note that we reset the index
+df_train = df[df.kfold != fold].reset_index(drop=True)
+# validation data is where kfold is equal to provided fold
+df_valid = df[df.kfold == fold].reset_index(drop=True)
+# drop the label column from dataframe and convert it to
+# a numpy array by using .values.
+# target is label column in the dataframe
+x_train = df_train.drop("label", axis=1).values
+y_train = df_train.label.values
+# similarly, for validation, we have
+x_valid = df_valid.drop("label", axis=1).values
+y_valid = df_valid.label.values
+# initialize simple decision tree classifier from sklearn
+clf = tree.DecisionTreeClassifier()
+# fit the model on training data
+clf.fit(x_train, y_train)
+# create predictions for validation samples
+preds = clf.predict(x_valid)
+# calculate & print accuracy
+accuracy = metrics.accuracy_score(y_valid, preds)
+print(f"Fold={fold}, Accuracy={accuracy}")
+# save the model
+joblib.dump(clf, f"../models/dt_{fold}.bin")
+if __name__ == "__main__":
+run(fold=0)
+run(fold=1)
+run(fold=2)
+run(fold=3)
+run(fold=4)
+```
+When you look at the training script, you will see that there are still a few more
+things that are hardcoded, for example, the fold numbers, the training file and the
+output folder.<br>
