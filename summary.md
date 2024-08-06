@@ -2076,3 +2076,187 @@ have a GPU! This can also be improved further, and you don’t need to worry abo
 feature engineering as neural network handles it on its own. This is definitely worth
 a try when dealing with a large dataset of categorical features. When embedding
 size is the same as the number of unique categories, we have one-hot-encoding.<Br>
+
+
+
+
+## Feature engineering
+
+Feature engineering is one of the most crucial parts of building a good machine
+learning model. If we have useful features, the model will perform better. There are
+many situations where you can avoid large, complicated models and use simple
+models with crucially engineered features. We must keep in mind that feature
+engineering is something that is done in the best possible manner only when you
+have some knowledge about the domain of the problem and depends a lot on the
+data in concern. However, there are some general techniques that you can try to
+create features from almost all kinds of numerical and categorical variables.
+Feature engineering is not just about creating new features from data but also
+includes different types of normalization and transformations.<Br>
+our focus will be limited to numerical variables and a combination of numerical and categorical variables.<br>
+
+Let’s start with the most simple but most widely used feature engineering
+techniques. Let’s say that you are dealing with date and time data. So, we have a
+pandas dataframe with a datetime type column. Using this column, we can create
+features like:
+
+- Year
+- Week of year
+- Month
+- Day of week
+- Weekend
+- Hour
+- And many more.<br>
+And this can be done using pandas very easily.
+```python
+df.loc[:, 'year'] = df['datetime_column'].dt.year
+df.loc[:, 'weekofyear'] = df['datetime_column'].dt.weekofyear
+df.loc[:, 'month'] = df['datetime_column'].dt.month
+df.loc[:, 'dayofweek'] = df['datetime_column'].dt.dayofweek
+df.loc[:, 'weekend'] = (df.datetime_column.dt.weekday >=5).astype(int)
+df.loc[:, 'hour'] = df['datetime_column'].dt.hour
+```
+So, we are creating a bunch of new columns using the datetime column. Let’s see
+some of the sample features that can be created.
+```python
+import pandas as pd
+# create a series of datetime with a frequency of 10 hours
+s = pd.date_range('2020-01-06', '2020-01-10', freq='10H').to_series()
+# create some features based on datetime
+features = {
+"dayofweek": s.dt.dayofweek.values,
+"dayofyear": s.dt.dayofyear.values,
+"hour": s.dt.hour.values,
+"is_leap_year": s.dt.is_leap_year.values,
+"quarter": s.dt.quarter.values,
+"weekofyear": s.dt.weekofyear.values
+}
+```
+
+This will generate a dictionary of features from a given series. You can apply this
+to any datetime column in a pandas dataframe. These are some of the many date
+time features that pandas offer. Date time features are critical when you are dealing
+with time-series data, for example, predicting sales of a store but would like to use
+a model like xgboost on aggregated features.<br>
+we see that we have a date column, and we can easily extract features
+like the year, month, quarter, etc. from that. Then we have a customer_id column
+which has multiple entries, so a customer is seen many times (not visible in the
+screenshot). And each date and customer id has three categorical and one numerical
+feature attached to it. There are a bunch of features we can create from it:<br>
+- What’s the month a customer is most active in
+- What is the count of cat1, cat2, cat3 for a customer
+- What is the count of cat1, cat2, cat3 for a customer for a given week of the year
+- What is the mean of num1 for a given customer
+- And so on.<br>
+Using aggregates in pandas, it is quite easy to create features like these. Let’s see
+how.
+```python
+def generate_features(df):
+# create a bunch of features using the date column
+df.loc[:, 'year'] = df['date'].dt.year
+df.loc[:, 'weekofyear'] = df['date'].dt.weekofyear
+df.loc[:, 'month'] = df['date'].dt.month
+df.loc[:, 'dayofweek'] = df['date'].dt.dayofweek
+df.loc[:, 'weekend'] = (df['date'].dt.weekday >=5).astype(int)
+# create an aggregate dictionary
+aggs = {}
+# for aggregation by month, we calculate the
+# number of unique month values and also the mean
+aggs['month'] = ['nunique', 'mean']
+aggs['weekofyear'] = ['nunique', 'mean']
+# we aggregate by num1 and calculate sum, max, min
+# and mean values of this column
+aggs['num1'] = ['sum','max','min','mean']
+# for customer_id, we calculate the total count
+aggs['customer_id'] = ['size']
+# again for customer_id, we calculate the total unique
+aggs['customer_id'] = ['nunique']
+# we group by customer_id and calculate the aggregates
+agg_df = df.groupby('customer_id').agg(aggs)
+agg_df = agg_df.reset_index()
+return agg_df
+```
+Please note that in the above function, we have skipped the categorical variables,
+but you can use them in the same way as other aggregates.<br>
+
+Sometimes, for example, when dealing with time-series problems, you might have
+features which are not individual values but a list of values. For example,
+transactions by a customer in a given period of time. In these cases, we create
+different types of features such as: with numerical features, when you are grouping
+on a categorical column, you will get features like a list of values which are time
+distributed. In these cases, you can create a bunch of statistical features such as:<br>
+- Mean
+- Max
+- Min
+- Unique
+- Skew
+- Kurtosis
+- Kstat
+- Percentile
+- Quantile
+- Peak to peak<br>
+These can be created using simple numpy functions, as shown in the following
+python snippet.<br>
+
+```python
+import numpy as np
+feature_dict = {}
+# calculate mean
+feature_dict['mean'] = np.mean(x)
+# calculate max
+feature_dict['max'] = np.max(x)
+# calculate min
+feature_dict['min'] = np.min(x)
+# calculate standard deviation
+feature_dict['std'] = np.std(x)
+# calculate variance
+feature_dict['var'] = np.var(x)
+# peak-to-peak
+feature_dict['ptp'] = np.ptp(x)
+# percentile features
+feature_dict['percentile_10'] = np.percentile(x, 10)
+feature_dict['percentile_60'] = np.percentile(x, 60)
+feature_dict['percentile_90'] = np.percentile(x, 90)
+# quantile features
+feature_dict['quantile_5'] = np.quantile(x, 0.05)
+feature_dict['quantile_95'] = np.quantile(x, 0.95)
+feature_dict['quantile_99'] = np.quantile(x, 0.99)
+```
+The time series data (list of values) can be converted to a lot of features.
+A python library called tsfresh is instrumental in this case.<br>
+
+This is not all; tsfresh offers hundreds of features and tens of variations of different
+features that you can use for time series (list of values) based features. In the
+examples above, x is a list of values. But that’s not all. There are many other features
+that you can create for numerical data with or without categorical data. A simple
+way to generate many features is just to create a bunch of polynomial features. For
+example, a second-degree polynomial feature from two features “a” and “b” would
+include: “a”, “b”, “ab”, “a 2 ” and “b 2 ”.<br>
+```python
+import numpy as np
+# generate a random dataframe with
+# 2 columns and 100 rows
+df = pd.DataFrame(
+np.random.rand(100, 2),
+columns=[f"f_{i}" for i in range(1, 3)]
+)
+```
+
+the more the number of polynomial features and you must also remember that if you have a lot of samples in the dataset, it is going to take a while creating these kinds of features.<br>
+
+Another interesting feature converts the numbers to categories. It’s known as
+binning. Let’s check a sample histogram of a random numerical feature. We use ten bins for this figure, and we see that we can divide the data into ten parts. This is accomplished using the pandas’ cut function.
+```python
+# create bins of the numerical columns
+# 10 bins
+df["f_bin_10"] = pd.cut(df["f_1"], bins=10, labels=False)
+# 100 bins
+df["f_bin_100"] = pd.cut(df["f_1"], bins=100, labels=False)
+```
+When you bin, you can use both the bin and the original feature. Binning also enables you to treat
+numerical features as categorical.<br>
+
+Yet another interesting type of feature that you can create from numerical features
+is log transformation. 
+there is a feature which is a special feature with a very high variance. Compared to other features that
+have a low variance (let’s assume that). Thus, we would want to reduce the variance
+of this column, and that can be done by taking a log transformation.And we can apply log(1 + x) to this column to reduce its variance.<br>
