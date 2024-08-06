@@ -1499,3 +1499,81 @@ Fold=1, Accuracy=0.9698333333333333<br>
 Fold=2, Accuracy=0.96575<br>
 Fold=3, Accuracy=0.9684166666666667<br>
 Fold=4, Accuracy=0.9666666666666667<br>
+
+
+## Approaching categorical variables
+Many people struggle a lot with the handling of categorical variables, and thus this
+deserves a full chapter. In this chapter, I will talk about different types of categorical
+data and how to approach a problem with categorical variables.<br>
+What are categorical variables?<br>
+Categorical variables/features are any feature type can be classified into two major
+types:<br>
+- Nominal
+- Ordinal<br>
+**Nominal variables** are variables that have two or more categories which do not
+have any kind of order associated with them. For example, if gender is classified
+into two groups, i.e. male and female, it can be considered as a nominal variable.<br>
+**Ordinal variables**, on the other hand, have “levels” or categories with a particular
+order associated with them. For example, an ordinal categorical variable can be a
+feature with three different levels: low, medium and high. Order is important.<br>
+As far as definitions are concerned, we can also categorize categorical variables as
+**binary**, i.e., a categorical variable with only two categories. Some even talk about
+a type called **cyclic** for categorical variables. Cyclic variables are present in
+“cycles” for example, days in a week: Sunday, Monday, Tuesday, Wednesday,
+Thursday, Friday and Saturday. After Saturday, we have Sunday again. This is a
+cycle. Another example would be hours in a day if we consider them to be categories.<br>
+
+Before we start, we need a dataset to work with (as always). One of the best free
+datasets to understand categorical variables is cat-in-the-dat from Categorical
+Features Encoding Challenge from Kaggle. There were two challenges, and we will
+be using the data from the second challenge as it had more variables and was more
+difficult than its previous version.<br>
+The dataset consists of all kinds of categorical variables:
+- Nominal
+- Ordinal
+- Cyclical
+- Binary<br>
+
+It is a binary classification problem.<br>
+
+The target is not very important for us to learn categorical variables, but in the end,
+we will be building an end-to-end model so let’s take a look at the target distribution
+in figure 2. We see that the target is **skewed** and thus the best metric for this binary
+classification problem would be Area Under the ROC Curve (AUC). We can use
+precision and recall too, but AUC combines these two metrics. Thus, we will be
+using AUC to evaluate the model that we build on this dataset.<br>
+
+Overall, there are:<br>
+- Five binary variables
+- Ten nominal variables
+- Six ordinal variables
+- Two cyclic variables
+- And a target variable<br>
+
+We have to know that computers do not understand text data and thus, we need to
+convert these categories to numbers. A simple way of doing this would be to create
+a dictionary that maps these values to numbers starting from 0 to N-1, where N is
+the total number of categories in a given feature.<br>
+```python
+mapping = {
+"Freezing": 0,
+"Warm": 1,
+"Cold": 2,
+"Boiling Hot": 3,
+"Hot": 4,
+"Lava Hot": 5
+}
+```
+This type of encoding of categorical variables is known as Label Encoding, i.e.,
+we are encoding every category as a numerical label.We can do the same by using LabelEncoder from scikit-learn.<br>
+
+We can use this directly in many tree-based models:<br>
+
+- Decision trees
+- Random forest
+- Extra Trees<br>
+Or any kind of boosted trees model<br>
+o XGBoost
+o GBM
+o LightGBM<br>
+
