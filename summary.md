@@ -1307,3 +1307,163 @@ run(fold=4)
 When you look at the training script, you will see that there are still a few more
 things that are hardcoded, for example, the fold numbers, the training file and the
 output folder.<br>
+
+We can thus create a config file with all this information: **config.py**.
+```python
+# config.py
+TRAINING_FILE = "../input/mnist_train_folds.csv"
+MODEL_OUTPUT = "../models/"
+```
+And we make some changes to our training script too. The training file utilizes the
+config file now. Thus making it easier to change data or the model output.
+```python
+# train.py
+import os
+import config
+import joblib
+import pandas as pd
+from sklearn import metrics
+from sklearn import tree
+def run(fold):
+# read the training data with folds
+df = pd.read_csv(config.TRAINING_FILE)
+# training data is where kfold is not equal to provided fold
+# also, note that we reset the index
+df_train = df[df.kfold != fold].reset_index(drop=True)
+# validation data is where kfold is equal to provided fold
+df_valid = df[df.kfold == fold].reset_index(drop=True)
+# drop the label column from dataframe and convert it to
+# a numpy array by using .values.
+# target is label column in the dataframe
+x_train = df_train.drop("label", axis=1).values
+y_train = df_train.label.values
+# similarly, for validation, we have
+x_valid = df_valid.drop("label", axis=1).values
+y_valid = df_valid.label.values
+# initialize simple decision tree classifier from sklearn
+clf = tree.DecisionTreeClassifier()
+# fir the model on training data
+clf.fit(x_train, y_train)
+# create predictions for validation samples
+preds = clf.predict(x_valid)
+# calculate & print accuracy
+accuracy = metrics.accuracy_score(y_valid, preds)
+print(f"Fold={fold}, Accuracy={accuracy}")
+# save the model
+joblib.dump(
+clf,
+os.path.join(config.MODEL_OUTPUT, f"dt_{fold}.bin")
+)
+if __name__ == "__main__":
+run(fold=0)
+run(fold=1)
+run(fold=2)
+run(fold=3)
+run(fold=4)
+```
+Please note that I am not showing the difference between this training script and the
+one before. Please take a careful look at both of them and find the differences
+yourself. There aren’t many of them.<br>
+There is still one more thing related to the training script that can be improved. As
+you can see, we call the run function multiple times for every fold. Sometimes it’s
+not advisable to run multiple folds in the same script as the memory consumption
+may keep increasing, and your program may crash. To take care of this problem,
+we can pass arguments to the training script. I like doing it using argparse.
+```python
+# train.py
+import argparse
+.
+.
+.
+if __name__ == "__main__":
+# initialize ArgumentParser class of argparse
+parser = argparse.ArgumentParser()
+# add the different arguments you need and their type
+# currently, we only need fold
+parser.add_argument(
+"--fold",
+type=int
+)
+# read the arguments from the command line
+args = parser.parse_args()
+# run the fold specified by command line arguments
+run(fold=args.fold)
+```
+If you see carefully, our fold 0 score was a bit different before. This is because of
+the randomness in the model.<br>
+We have made quite some progress now, but if we look at our training script, we
+still are limited by a few things, for example, the model. The model is hardcoded in
+the training script, and the only way to change it is to modify the script. So, we will
+create a new python script called model_dispatcher.py. model_dispatcher.py, as the
+name suggests, will dispatch our models to our training script.<br>
+```python
+# model_dispatcher.py
+from sklearn import tree
+models = {
+"decision_tree_gini": tree.DecisionTreeClassifier(
+criterion="gini"
+),
+"decision_tree_entropy": tree.DecisionTreeClassifier(
+criterion="entropy"
+),
+}
+```
+model_dispatcher.py imports tree from scikit-learn and defines a dictionary with
+keys that are names of the models and values are the models themselves. Here, we
+define two different decision trees, one with gini criterion and one with entropy. To
+use model_dispatcher.py, we need to make a few changes to our training script.
+```python
+# train.py
+import argparse
+import os
+import joblib
+import pandas as pd
+from sklearn import metrics
+import config
+import model_dispatcher
+def run(fold, model):
+# read the training data with folds
+df = pd.read_csv(config.TRAINING_FILE)
+# training data is where kfold is not equal to provided fold
+# also, note that we reset the index
+df_train = df[df.kfold != fold].reset_index(drop=True)
+# validation data is where kfold is equal to provided fold
+df_valid = df[df.kfold == fold].reset_index(drop=True)
+# drop the label column from dataframe and convert it to
+# a numpy array by using .values.
+# target is label column in the dataframe
+x_train = df_train.drop("label", axis=1).values
+y_train = df_train.label.values
+# similarly, for validation, we have
+x_valid = df_valid.drop("label", axis=1).values
+y_valid = df_valid.label.values
+# fetch the model from model_dispatcher
+clf = model_dispatcher.models[model]
+# fir the model on training data
+clf.fit(x_train, y_train)
+# create predictions for validation samples
+preds = clf.predict(x_valid)
+# calculate & print accuracy
+accuracy = metrics.accuracy_score(y_valid, preds)
+print(f"Fold={fold}, Accuracy={accuracy}")
+# save the model
+joblib.dump(
+clf,
+os.path.join(config.MODEL_OUTPUT, f"dt_{fold}.bin")
+)
+if __name__ == "__main__":
+parser = argparse.ArgumentParser()
+parser.add_argument(
+"--fold",
+type=int
+)
+parser.add_argument(
+"--model",
+type=str
+)
+args = parser.parse_args()
+run(
+fold=args.fold,
+model=args.model
+)
+```
