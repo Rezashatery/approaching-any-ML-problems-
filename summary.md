@@ -2746,3 +2746,68 @@ image and mask images. Please note that we will create these scripts in such a w
 that they can be applied to almost any segmentation problem. The training dataset
 is a CSV file consisting only of image ids which are also filenames.<br>    
 
+
+
+## Approaching text classification/regression
+In general, these problems are also known as
+Natural Language Processing (NLP) problems. NLP problems are also like
+images in the sense that, it’s quite different. You need to create pipelines you have
+never created before for tabular problems. You need to understand the business case
+to build a good model. By the way, that is true for anything in machine learning.
+Building models will take you to a certain level, but to improve and contribute to a
+business you are building the model for, you must understand how it impacts the
+business. Let’s not get too philosophical here.<br>
+
+There are many different types of NLP problems, and the most common type is the
+classification of strings. Many times, it is seen that people are doing well with
+tabular data or with images, but when it comes to text, they don’t even have a clue
+where to start from. Text data is no different than other types of datasets. For
+computers, everything is numbers.<br>
+Let’s say we start with a fundamental task of sentiment classification. We will try
+to classify sentiment from movie reviews. So, you have a text, and there is a
+sentiment associated with it. How will you approach this kind of problem? Apply a
+deep neural network right, or maybe muppets can come and save you? No,
+absolutely wrong. You start with the basics. Let’s see what this data looks like first.<br>
+We start with IMDB movie review dataset 15 that consists of 25000 reviews for
+positive sentiment and 25000 reviews for negative sentiment.
+The concepts that I will discuss here can be applied to almost any text classification
+dataset. This dataset is quite easy to understand. One review maps to one target variable.
+Note that I wrote review instead of sentence. A review is a bunch of sentences. So,
+until now you must have seen classifying only a single sentence, but in this problem,
+we will be classifying multiple sentences.In simple words, it means that not only one sentence contributes to the sentiment, but the sentiment score is a combination of score from multiple sentences.<br>
+
+How would you start with such a problem?
+A simple way would be just to create two handmade lists of words. One list will
+contain all the positive words you can imagine, for example, good, awesome, nice,
+etc. and another list will include all the negative words, such as bad, evil, etc. Let’s
+leave examples of bad words else I’ll have to make this book available only for 18+.
+Once you have these lists, you do not even need a model to make a prediction.
+These lists are also known as sentiment lexicons. A bunch of them for different
+languages are available on the internet.<br> 
+You can have a simple counter that counts the number of positive and negative
+words in the sentence. If the number of positive words is higher, it is a positive
+sentiment, and if the number of negative words is higher, it is a sentence with a
+negative sentiment. If none of them are present in the sentence, you can say that the
+sentence has a neutral sentiment. This is one of the oldest ways, and some people
+still use it.<br>
+However, this kind of approach does not take a lot into consideration. And as you
+can see that our split() is also not perfect. If you use split(), a sentence like:<br>
+“hi, how are you?”<br>
+gets split into<br>
+[“hi,”, “how”, “are”, “you?”]<br>
+This is not ideal, because you see the comma and question mark, they are not split.
+It is therefore not recommended to use this method if you don’t have a pre-
+processing that handles these special characters before the split. Splitting a string
+into a list of words is known as tokenization. One of the most popular tokenization
+comes from NLTK (Natural Language Tool Kit).<br>
+One of the basic models that you should always try with a classification problem in
+NLP is bag of words. In bag of words, we create a huge sparse matrix that stores
+counts of all the words in our corpus (corpus = all the documents = all the
+sentences). For this, we will use CountVectorizer from scikit-learn.<br>
+
+Now, we have more words in the vocabulary. Thus, we can now create a sparse
+matrix by using all the sentences in IMDB dataset and can build a model. The ratio
+to positive and negative samples in this dataset is 1:1, and thus, we can use accuracy
+as the metric.<br>
+We will use StratifiedKFold and create a single script to train five folds. Which model to use you ask? Which is the fastest model for high dimensional sparse data? Logistic regression. We will use logistic regression for this dataset to
+start with and to create our first actual benchmark.<br>
