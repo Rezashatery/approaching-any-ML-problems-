@@ -2811,3 +2811,63 @@ to positive and negative samples in this dataset is 1:1, and thus, we can use ac
 as the metric.<br>
 We will use StratifiedKFold and create a single script to train five folds. Which model to use you ask? Which is the fastest model for high dimensional sparse data? Logistic regression. We will use logistic regression for this dataset to
 start with and to create our first actual benchmark.<br>
+
+
+all we did was use bag of words with logistic regression! This is super amazing! However, this model took a lot of time
+to train, let’s see if we can improve the time by using naïve bayes classifier. Naïve
+bayes classifier is quite popular in NLP tasks as the sparse matrices are huge and
+naïve bayes is a simple model. To use this model, we need to change one import
+and the line with the model. Let’s see how this model performs. We will use
+MultinomialNB from scikit-learn.<br>
+Another method in NLP that most of the people these days tend to ignore or don’t
+care to know about is called **TF-IDF**. TF is term frequencies, and IDF is inverse
+document frequency. It might seem difficult from these terms, but things will
+become apparent with the formulae for TF and IDF.
+
+$$
+TF(t) = \frac{\text{Number of times a term } t \text{ appears in a document}}{\text{Total number of terms in the document}}
+$$
+
+$$
+IDF(t) = \log\left(\frac{\text{Total number of documents}}{\text{Number of documents with term } t \text{ in it}}\right)
+$$
+
+And TF-IDF for a term t is defined as:
+
+$$
+\text{TF-IDF}(t) = TF(t) \times IDF(t)
+$$
+
+Similar to CountVectorizer in scikit-learn, we have TfidfVectorizer. Let’s try using
+it the same way we used CountVectorizer. We see that instead of integer values, this time we get floats. Replacing
+CountVectorizer with TfidfVectorizer is also a piece of cake. Scikit-learn also offers
+TfidfTransformer. If you have count values, you can use TfidfTransformer and get
+the same behaviour as TfidfVectorizer.<br>
+
+Another interesting concept in NLP is n-grams. N-grams are combinations of
+words in order. N-grams are easy to create. You just need to take care of the order.
+To make things even more comfortable, we can use n-gram implementation from
+NLTK.<br>
+Similarly, we can also create 2-grams, or 4-grams, etc. Now, these n-grams become
+a part of our vocab, and when we calculate counts or tf-idf, we consider one n-gram
+as one entirely new token. So, in a way, we are incorporating context to some extent.
+Both CountVectorizer and TfidfVectorizer implementations of scikit-learn offers n-
+grams by ngram_range parameter, which has a minimum and maximum limit. By
+default, this is (1, 1). When we change it to (1, 3), we are looking at unigrams,
+bigrams and trigrams. The code change is minimal. Since we had the best result till
+now with tf-idf, let’s see if including n-grams up to trigrams improves the model.<br>
+we do not see any improvements. Maybe we can get improvements by using only up to bigrams. I’m not showing that part here.
+Probably you can try to do it on your own.<br>
+There are a lot more things in the basics of NLP. One term that you must be aware
+of is stemming. Another is lemmatization. **Stemming and lemmatization** reduce a
+word to its smallest form. In the case of stemming, the processed word is called the
+stemmed word, and in the case of lemmatization, it is known as the lemma. It must
+be noted that lemmatization is more aggressive than stemming and stemming is
+more popular and widely used. Both stemming and lemmatization come from
+linguistics. And you need to have an in-depth knowledge of a given language if you
+plan to make a stemmer or lemmatizer for that language. Going into too much detail
+of these would mean adding one more chapter in this book. Both stemming and
+lemmatization can be done easily by using the NLTK package. Let’s take a look at
+some examples for both of them. There are many different types of stemmers and
+lemmatizers. I will show an example using the most common **Snowball Stemmer**
+and **WordNet Lemmatizer**.<br>
