@@ -2708,3 +2708,41 @@ ImageNet pre-trained models include:<br>
 - Xception
 - ResNeXt
 - EfficientNet<br>
+
+
+
+
+
+
+**Segmentation** is a task which is quite popular in computer vision. In a segmentation
+task, we try to remove/extract foreground from background. Foreground and background can have different definitions. We can also say that it is a pixel-wise classification task in which your job is to assign a class to each pixel in a given
+image. The pneumothorax dataset that we are working on is, in fact, a segmentation
+task. In this task, given the chest radiographic images, we are required to segment
+pneumothorax. The most popular model used for segmentation tasks is **U-Net**.<br>
+U-Nets have two parts: encoder and decoder. The encoder is the same as any
+convnet you have seen till now. The decoder is a bit different. Decoder consists of
+up-convolutional layers. In up-convolutions (transposed convolutions), we use
+filters that when applied to a small image, creates a larger image. In PyTorch, you
+can use ConvTranspose2d for this operation. It must be noted that up-convolution
+is not the same as up-sampling. Up-sampling is an easy process in which we apply
+a function to an image to resize it. In up-convolution, we learn the filters. We take
+some parts of the encoder as inputs to some of the decoders. This is important for
+the up-convolutional layers.<br>
+
+We see that the encoder part of the U-Net is a nothing but a simple convolutional
+network. We can, thus, replace this with any network such as ResNet. The
+replacement can also be done with pretrained weights. Thus, we can use a ResNet
+based encoder which is pretrained on ImageNet and a generic decoder. In place of
+ResNet, many different network architectures can be used. Segmentation Models
+Pytorch 12 by Pavel Yakubovskiy is an implementation of many such variations
+where an encoder can be replaced by a pretrained model. Let’s apply a ResNet
+based U-Net for pneumothorax detection problem.<br>
+
+Most of the problems like this should have two inputs: the original image and a
+mask. In the case of multiple objects, there will be multiple masks. In our
+pneumothorax dataset, we are provided with RLE instead. RLE stands for run-length encoding and is a way to represent binary masks to save space. Going deep into RLE is beyond the scope of this chapter. So, let’s assume that we have an input
+image and corresponding mask. Let’s first design a dataset class which outputs
+image and mask images. Please note that we will create these scripts in such a way
+that they can be applied to almost any segmentation problem. The training dataset
+is a CSV file consisting only of image ids which are also filenames.<br>    
+
