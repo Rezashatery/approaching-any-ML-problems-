@@ -2648,3 +2648,63 @@ Now, we have a 3x3 filter which is moving with a stride of 1. Size of the origin
 on each side once. In this case, the resulting image will be of the same size as the
 input image, i.e. 6x6. Another relevant term that you might come across when
 dealing with deep neural networks is dilation.<br>
+
+In **dilation**, we expand the filter by N-1, where N is the value of dilation rate or
+simply known as dilation. In this kind of kernel with dilation, you skip some pixels
+in each convolution. This is particularly effective in segmentation tasks. Please note
+that we have only talked about 2-dimensional convolutions. There are 1-d
+convolutions too and also in higher dimensions. All work on the same underlying
+concept.<br>
+Next comes max-pooling. **Max pooling** is nothing but a filter which returns max.
+So, instead of convolution, we are extracting the max value of pixels. Similarly,
+**average pooling** or **mean-pooling** returns mean of pixels. They are used in the
+same way as the convolutional kernel. Pooling is faster than convolution and is a
+way to down-sample the image. Max pooling detects edges and average pooling
+smoothens the image.<br>
+Now, we are well prepared to start building our first convolutional neural
+network in PyTorch. PyTorch provides an intuitive and easy way to implement deep
+neural networks, and you don’t need to care about back-propagation.<br>
+You can design your own convolutional neural networks for your task, and many
+times it is a good idea to start from something on your own. Let’s build a network
+to classify images from our initial dataset of this chapter into categories of having
+pneumothorax or not. But first, let’s prepare some files. The first step would be to
+create a folds file, i.e. train.csv but with a new column kfold. We will create five
+folds. Since I have shown how to do this for different datasets in this book, I will
+skip this part and leave it an exercise for you. For PyTorch based neural networks,
+we need to create a dataset class. The objective of the dataset class is to return an
+item or sample of data. This sample of data should consist of everything you need
+in order to train or evaluate your model.<br>
+This model seems to perform the best. However, you might be able to tune the
+different parameters and image size in AlexNet to get a better score. Using
+augmentations will improve the score further. Optimising deep neural networks is
+difficult but not impossible. Choose Adam optimizer, use a low learning rate,
+reduce learning rate on a plateau of validation loss, try some augmentations, try
+preprocessing the images (e.g. cropping if needed, this can also be considered pre-
+processing), change the batch size, etc. There’s a lot that you can do to optimize
+your deep neural network.<br>
+**ResNet** is an architecture much more complicated compared to AlexNet. ResNet
+stands for Residual Neural Network and was introduced by K. He, X. Zhang, S.
+Ren and J. Sun in the paper, deep residual learning for image recognition, in 2015.
+ResNet consists of **residual blocks** that transfer the knowledge from one layer to
+further layers by skipping some layers in between. These kinds of connections of
+layers are known as **skip-connections** since we are skipping one or more layers.
+Skip-connections help with the vanishing gradient issue by propagating the
+gradients to further layers. This allows us to train very large convolutional neural
+networks without loss of performance.Usually, the training loss increases at a given point if we are using a large neural network, but that can be prevented by using skip-connections.<br>
+A residual block is quite simple to understand. You take the output from a layer,
+skip some layers and add that output to a layer further in the network. The dotted
+lines mean that the input shape needs to be adjusted as max-pooling is being used
+and use of max-pooling changes the size of the output.<br>
+ResNet comes in many different variations: 18, 34, 50, 101 and 152 layers and all
+of them are available with weights pre-trained on ImageNet dataset. These days
+pretrained models work for (almost) everything but make sure that you start with
+smaller models, for example, begin with resnet-18 rather than resnet-50. Some other
+ImageNet pre-trained models include:<br>
+- Inception
+- DenseNet (different variations)
+- NASNet
+- PNASNet
+- VGG
+- Xception
+- ResNeXt
+- EfficientNet<br>
