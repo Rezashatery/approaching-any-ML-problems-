@@ -2568,3 +2568,83 @@ L1 is also known as Lasso regression and L2 as Ridge regression. When it comes
 to neural networks, we use dropouts, the addition of augmentations, noise, etc. to
 regularize our models. Using hyper-parameter optimization, you can also find the
 correct penalty to use.
+
+## Approaching image classification & segmentation
+
+What are the different approaches that we can apply to images? Image is nothing
+but a matrix of numbers. The computer cannot see the images as humans do. It only
+looks at numbers, and that’s what the images are. A grayscale image is a two-
+dimensional matrix with values ranging from 0 to 255. 0 is black, 255 is white and
+in between you have all shades of grey. Previously, when there was no deep learning
+(or when deep learning was not popular), people used to look at pixels. Each pixel
+was a feature. You can do this easily in Python. Just read the grayscale image using
+OpenCV or Python-PIL, convert to a numpy array and ravel (flatten) the matrix. If
+you are dealing with RGB images, then you have three matrices instead of one. But
+the idea remains the same.<br>
+This matrix consists of
+values ranging from 0 to 255 (included) and is of size 256x256 (also known as
+pixels). As you can see that the ravelled version is nothing but a vector of size M, where M
+= N * N. In this case, this vector is of the size 256 * 256 = 65536.<br>
+Now, if we go ahead and do it for all the images in our dataset, we have 65536
+features for each sample. We can now quickly build a decision tree model or
+random forest or SVM-based model on this data. The models will look at pixel
+values and would try to separate positive samples from negative samples (in case
+of a binary classification problem).<br>
+All of you must have heard about the cats vs dogs problem. It's a classic one. But
+let's try something different. If you remember, at the beginning of the chapter on
+evaluation metrics, I introduced you to a dataset of pneumothorax images. So, let’s
+try building a model to detect if an X-ray image of a lung has pneumothorax or not.
+That is, a (not so) simple binary classification.<br>
+The original dataset is about detecting where exactly pneumothorax is present, but
+we have modified the problem to find if the given x-ray image has pneumothorax
+or not. Don’t worry; we will cover the where part in this chapter. The dataset
+consists of 10675 unique images and 2379 have pneumothorax (note that these
+numbers are after some cleaning of data and thus do not match original dataset). As
+a data doctor would say: this is a **classic case of skewed binary classification**.
+Therefore, we choose the evaluation metric to be AUC and go for a stratified k-fold
+cross-validation scheme.<br>
+You can flatten out the features and try some classical methods like SVM, RF for
+doing classification, which is perfectly fine, but it won't get you anywhere near state
+of the art. Also, the images are of size 1024x1024. It’s going to take a long time to
+train a model on this dataset. For what it’s worth, let’s try building a simple random
+forest model on this data. Since the images are grayscale, we do not need to do any
+kind of conversion. We will resize the images to 256x256 to make them smaller
+and use AUC as a metric as discussed before.<br>
+let’s take a look at one of the most famous deep learning models AlexNet and see what’s
+happening there.<br>
+Nowadays, you might say that it is a basic **deep convolutional neural network**,
+but it is the foundation of many new deep nets (deep neural networks). We see that
+the network  is a convolutional neural network with five convolution
+layers, two dense layers and an output layer. We see that there is also max pooling.
+What is it? Let’s look at some terms which you will come across when doing deep
+learning.<br>
+Figure 4 introduces two new terms: filter and strides. **Filters** are nothing but two-
+dimensional matrices which are initialized by a given function. **“He initialization”** 
+which is also known **Kaiming normal initialization** is a good choice for
+convolutional neural networks. It is because most modern networks use **ReLU**
+(Rectified Linear Units) activation function and proper initialization is required to
+avoid the problem of **vanishing gradients** (when gradients approach zero and
+weights of network do not change). This filter is convolved with the image.
+Convolution is nothing but a summation of elementwise multiplication (cross-
+correlation) between the filter and the pixels it is currently overlapping in a given
+image. You can read more about convolution in any high school mathematics
+textbook. We start convolution of this filter from the top left corner of the image,
+and we move it horizontally. If we move it by 1 pixel, the stride is 1. If we move it
+by 2 pixels, the stride is 2. And that’s what **stride** is.<br>    
+Stride is a useful concept even in natural language processing, e.g. in question and
+answering systems when you have to filter answer from a large text corpus. When
+we are exhausted horizontally, we move the filter by the same stride downwards
+vertically, starting from left again. Figure 4 also shows a filter going outside the
+image. In these cases, it’s not possible to calculate the convolution. So, we skip it.
+If you don’t want to skip it, you will need to **pad the image**. It must also be noted
+that convolution will decrease the size of the image. Padding is also a way to keep
+the size of the image the same. In figure 4, A 3x3 filter is moving horizontally and
+vertically, and every time it moves, it skips two columns and two rows (i.e. pixels)
+respectively. Since it skips two pixels, stride = 2. And resulting image size is [(8-3)
+/ 2] + 1 = 3.5. We take the floor of 3.5, so its 3x3. You can do it by hand by moving
+the filters on a pen and paper.<br>
+Now, we have a 3x3 filter which is moving with a stride of 1. Size of the original image is 6x6, and we have added padding of
+1 .The padding of 1 means increasing the size of the image by adding zero pixels
+on each side once. In this case, the resulting image will be of the same size as the
+input image, i.e. 6x6. Another relevant term that you might come across when
+dealing with deep neural networks is dilation.<br>
