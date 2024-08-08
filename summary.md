@@ -2921,3 +2921,67 @@ these embeddings by using co-occurrence matrices. So, we can say that all these
 different types of embeddings are in the end returning a dictionary where the key is
 a word in the corpus (for example English Wikipedia) and value is a vector of size
 N (usually 300).<br>
+
+
+Suppose, we have done it somehow and represented the words in two dimensions. Figure 1
+shows that if you subtract the vector for Germany from the vector of Berlin (capital
+of Germany) and add the vector of France to it, you will get a vector close to the
+vector for Paris (capital of France). This shows that embeddings also work with
+analogies. This is not always true, but examples like these are useful for
+understanding the usefulness of word embeddings. A sentence like “hi, how are you
+” can be represented by a bunch of vectors as follows.<br>
+hi─>[vector (v1) of size 300]
+,─>[vector (v2) of size 300]
+how─>[vector (v3) of size 300]
+are─>[vector (v4) of size 300]
+you─>[vector (v5) of size 300]
+?─>[vector (v6) of size 300]<br>
+
+There are multiple ways to use this information. One of the simplest ways would
+be to use the embeddings as they are. As you can see in the example above, we have
+a 1x300 embedding vector for each word. Using this information, we can calculate
+the embedding for the whole sentence. There are multiple ways to do it. we take all the individual word vectors
+in a given sentence and create a normalized word vector from all word vectors of
+the tokens. This provides us with a **sentence vector**.<br>
+When we talk about text data, we must keep one thing in our mind. Text data is
+very similar to the time series data. Any sample in our reviews is a sequence of
+tokens at different timestamps which are in increasing order, and each token can be
+represented as a vector/embedding. <br>
+
+This means that we can use models that are widely used for time series data such as
+**Long Short Term Memory (LSTM)** or **Gated Recurrent Units (GRU)** or even
+**Convolutional Neural Networks (CNNs)**. Let’s see how to train a simple bi-
+directional LSTM model on this dataset. <br>
+If you want to change the model, you can just change model in
+lstm.py and keep everything as it is. This kind of code requires minimal changes
+for experiments and is easily understandable. For example, you can learn the
+embeddings on your own instead of using pretrained embeddings, you can use some
+other pretrained embeddings, you can combine multiple pretrained embeddings,
+you can use GRU, you can use spatial dropout after embedded, you can add a GRU
+layer after LSTM, you can add two LSTM layers, you can have LSTM-GRU-LSTM
+config, you can replace LSTM with a convolutional layer, etc. without making
+many changes to the code. Most of what I mention requires changes only to model
+class.<br>
+
+So far, we have built a lot of models for a classification problem. However, it is the
+era of muppets, and more and more people are moving towards transformer-based
+models. **Transformer** based networks are able to handle dependencies which are
+long term in nature. LSTM looks at the next word only when it has seen the previous
+word. This is not the case with transformers. It can look at all the words in the whole sentence simultaneously. Due to this, one more advantage is that it can easily be parallelized and uses GPUs more efficiently.<br>
+Transformers is a very broad topic, and there are too many models: **BERT**,
+**RoBERTa, XLNet, XLM-RoBERTa, T5**, etc. I will show you a general approach
+that you can use for all these models (except T5) for the classification problem that
+we have been discussing. Please note that these transformers are hungry in terms of
+computational power needed to train them. Thus, if you do not have a high-end
+system, it might take much longer to train a model compared to LSTM or TF-IDF
+based models.<br>
+
+It must be noted that the only task we discussed here is classification but changing
+it to regression, multi-label or multi-class will require only a couple of lines of code
+changes. For example, the same problem in multi-class classification setting will
+have multiple outputs and Cross-Entropy loss. Everything else should remain the
+same. Natural language processing is huge, and we discussed only a small fraction
+of it. Apparently, this is a huge fraction as most of the industrial models are
+classification or regression models. If I start writing in detail about everything I
+might end up writing a few hundred pages, and that’s why I have decided to include
+everything in a separate book: Approaching (Almost) Any NLP Problem!<br>
