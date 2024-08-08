@@ -3124,3 +3124,33 @@ worry about it much. It is nothing but stacking with a holdout set instead of mu
 folds.
 It must be noted that what I have described in this chapter can be applied to any
 kind of problem: classification, regression, multi-label classification, etc.<br>
+
+
+## Approaching reproducible code & model serving
+We have now reached a stage where we should be able to distribute our
+models/training code to others so that they can use it. You can distribute or share
+the code with others in a floppy disk, but that’s not ideal. Is it? May be many years
+ago, it was ideal but not anymore. The preferred way of sharing code and
+collaborating with others is by using a source code management system. Git is one
+of the most popular source code management systems. So, let’s say you have
+learned git and formatted the code properly, have written proper documentation and
+have open-sourced your project. Is that enough? No. It’s not. It’s because you wrote
+code on your computer and that might not work on someone else’s computer
+because of many different reasons. So, it would be nice if when you distribute the
+code, you could replicate your computer and others can too when they install your
+software or run your code. To do this, the most popular way these days is to use
+Docker Containers. To use docker containers, you need to install docker.<br>
+Docker containers can be considered as small virtual machines. You can create a
+container for your code, and then everyone will be able to use it and access it. Let’s
+see how we can create containers that can be used for training a model. We will use
+the BERT model that we trained in the natural language processing chapter and try
+to containerize the training code.<br>
+First and foremost, you need a file with requirements for your python project.
+Requirements are contained in a file called requirements.txt. The filename is the standard. The file consists of all the python libraries that you are using in your project. That is the python libraries that can be downloaded via PyPI (pip). For
+training our BERT model to detect positive/negative sentiment, we use torch,
+transformers, tqdm, scikit-learn, pandas and numpy. Let’s write them in
+requirements.txt. You can just write the names, or you can also include the version.
+It’s always the best to include version, and that’s what you should do. When you
+include version, it makes sure that others have the same version as yours and not
+the latest version as the latest version might change something and if that’s the case,
+model won’t be trained the same way as was done by you.<br>
