@@ -236,7 +236,7 @@ df.to_csv("train_folds.csv", index=False)
 Note that we continue on the code above. So, we have converted the target values.
 Looking at figure 6 we can say that the quality is very much skewed. Some classes have a lot of samples, and some don’t have that many. If we do a simple k-fold, we won’t have an equal distribution of targets in every fold. Thus, we choose stratified k-fold in this case.<br>
 But what should we do if we have a large amount of data?<br>
-we can opt for a **hold-out based validation.**
+we can opt for a **hold-out based validation.**<br>
 In many cases, we have to deal with small datasets and creating big validation sets
 means losing a lot of data for the model to learn. In those cases, we can opt for a
 type of k-fold cross-validation where k=N, where N is the number of samples in the
@@ -268,6 +268,7 @@ number of bins.
 
 Let’s make a sample regression dataset and try to apply stratified k-fold as shown
 in the following python snippet.<br>
+
 
 ```python 
 # stratified-kfold for regression
