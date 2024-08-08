@@ -3154,3 +3154,41 @@ It’s always the best to include version, and that’s what you should do. When
 include version, it makes sure that others have the same version as yours and not
 the latest version as the latest version might change something and if that’s the case,
 model won’t be trained the same way as was done by you.<br>
+
+
+
+Because it’s very important to understand this error. This error says that the code
+was unable to find the directory “../input/bert_base_cased”. Why does this happen?
+We were able to train without docker, and we can see that the directory and all the
+files exist. It happens because docker is like a virtual machine! It has its own
+filesystem and the files from your local machine are not shared to the docker
+container. If you want to use a path from your local machine and want to modify it
+too, you would need to mount it to the docker container when running it. When we
+look at this folder path, we know that it is one level up in a folder called input. Let’s
+change the config.py file a bit!<br>
+Note that any change in the python scripts, means that the docker container needs
+to be rebuilt! So, we rebuild the container and rerun the docker command but this
+time with a twist. However, this won’t work either if we do not have the NVIDIA
+docker runtimes. Don’t worry. It’s just a docker container again, and you need to do it only once. To install the NVIDIA docker runtime, you can run the following commands in Ubuntu 18.04.<br>
+So, with some very simple changes, you have now “dockerized” your training code.
+You can now take this code and train on (almost) any system you want.<br>
+The next part is “serving” this model that we have trained to the end-user. Suppose,
+you want to extract sentiment from a stream of incoming tweets. To do this kind of
+task, you must create an API that can be used to input the sentence and in turns
+returns an output with sentiment probabilities. The most common way of building
+an API using Python is with Flask, which is a micro web service framework.<br>
+Now you can rerun the API just by using the command mentioned above, and it
+will work the same way as before. Congratulations! Now you have managed to
+dockerized the prediction API too, and it is ready for deployment anywhere you
+want. In this chapter, we learned docker, building APIs using flask, serving API
+using gunicorn and docker and docker-compose. There is a lot more to docker
+than we have seen here, but this should give you a start. Rest can be learned as you
+progress. We have also skipped on many tools like kubernetes, bean-stalk,
+sagemaker, heroku and many others that people use these days for deploying
+models in production. “What am I going to write? Click on modify docker container
+in figure X”? It’s not feasible and advisable to describe these in a book, so I will be
+using a different medium complimenting this part of the book. Remember that once
+you have dockerized your application, deploying using any of these
+technologies/platforms is a piece of cake. Always remember to make your code and
+model usable and well-documented for others so that anyone can use what you have
+developed without asking you several times.This will save you time, and it will also save their time. Good, open-source, re-usable code also looks good in your portfolio.
