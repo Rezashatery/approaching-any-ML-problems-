@@ -2985,3 +2985,84 @@ of it. Apparently, this is a huge fraction as most of the industrial models are
 classification or regression models. If I start writing in detail about everything I
 might end up writing a few hundred pages, and that’s why I have decided to include
 everything in a separate book: Approaching (Almost) Any NLP Problem!<br>
+
+
+
+## Approaching ensembling and stacking
+When we hear these two words, the first thing that comes to our mind is that it’s all
+about online/offline machine learning competitions. This used to be the case a few
+years ago, but now with the advancements in computing power and cheaper virtual
+instances, people have started using ensemble models even in industries. For
+example, it’s very easy to deploy multiple neural networks and serve them in real-
+time with a response time of less than 500ms. Sometimes, a huge neural network or
+a large model can also be replaced by a few other models which are small in size,
+perform similar to the large model and are twice as fast. If this is the case, which
+model(s) will you choose? I, personally, would prefer multiple small models, which
+are faster and give the same performance as a much larger and slower model. Please
+remember that smaller models are also easier and faster to tune.<br>
+**Ensembling** is nothing but a combination of different models. The models can be
+combined by their predictions/probabilities. The simplest way to combine models
+would be just to do an average.<br>
+
+Ensemble Probabilities = (M1_proba + M2_proba + … + Mn_Proba) / n<br>
+
+This is simple and yet the most effective way of combining models. In simple
+averaging, the weights are equal to all models. One thing that you should keep in
+mind for any method of combining is that you should always combine
+predictions/probabilities of models which are different from each other. In simple
+words, the combination of models which are not highly correlated works better than
+the combination of models which are very correlated with each other.<br>
+If you do not have probabilities, you can combine predictions too. The most simple
+way of doing this is to take a **vote**.<br>
+```python
+import numpy as np
+def mean_predictions(probas):
+"""
+Create mean predictions
+:param probas: 2-d array of probability values
+:return: mean probability
+"""
+return np.mean(probas, axis=1)
+def max_voting(preds):
+"""
+Create mean predictions
+:param probas: 2-d array of prediction values
+:return: max voted predictions
+"""
+idxs = np.argmax(preds, axis=1)
+return np.take_along_axis(preds, idxs[:, None], axis=1)
+```
+
+Please note that probas have a single probability (i.e. binary classification, usually
+class 1) in each column. Each column is thus a new model. Similarly, for preds,
+each column is a prediction from different models. Both these functions assume a
+2-dimensional numpy array. You can modify it according to your requirements. For
+example, you might have a 2-d array of probabilities for each model. In that case,
+the function will change a bit. Another way of combining multiple models is by
+**ranks of their probabilities**. This type of combination works quite good when the
+concerned metric is the area under curve as AUC is all about ranking samples.<br>
+
+if three people are guessing the height of an elephant, the
+original height will be very close to the average of the three guesses. Let’s assume
+these people can guess very close to the original height of the elephant. Close
+estimate means an error, but this error can be minimized when we average the three
+predictions. This is the main idea behind the averaging of multiple models.<br>
+Probabilities can also be combined by weights.<br>
+
+Final Probabilities = w1*M1_proba + w2*M2_proba + … + wn*Mn_proba<br>
+
+Where (w1 + w2 + w3 + … + wn) = 1.0<br>
+
+Assume that we have three monkeys with three knobs with values that range
+between 0 and 1. These monkeys turn the knobs, and we calculate the AUC score
+at each value they turn the knob to. Eventually, the monkeys will find a combination
+that gives the best AUC. Yes, it is a random search! Before doing these kinds of
+searches, you must remember the two most important rules of ensembling.<br>
+The first rule of ensembling is that you always create folds before starting with
+ensembling.<br>
+The second rule of ensembling is that you always create folds before starting with
+ensembling.<br>
+YES. These are the two most important rules, and no, there is no mistake in what I
+wrote. The first step is to create folds. For simplicity, let’s say we divide the data
+into two parts: fold 1 and fold 2. Please note that this is only done for simplicity in
+explaining. In a real-world scenario, you should create more folds.<br>
