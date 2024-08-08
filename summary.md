@@ -2871,3 +2871,53 @@ lemmatization can be done easily by using the NLTK package. Let’s take a look 
 some examples for both of them. There are many different types of stemmers and
 lemmatizers. I will show an example using the most common **Snowball Stemmer**
 and **WordNet Lemmatizer**.<br>
+
+
+
+stemming and lemmatization are very different from each other.
+When we do stemming, we are given the smallest form of a word which may or
+may not be a word in the dictionary for the language the word belongs to. However,
+in the case of lemmatization, this will be a word. You can now try on your own to
+add stemming and lemmatizations and see if it improves your result.<br>
+One more topic that you should be aware of is topic extraction. Topic extraction
+can be done using non-negative matrix factorization (NMF) or latent semantic
+analysis (LSA), which is also popularly known as singular value decomposition or
+SVD. These are decomposition techniques that reduce the data to a given number
+of components. You can fit any of these on sparse matrix obtained from
+CountVectorizer or TfidfVectorizer.<br>
+We will convert a string like “hi, how are you????” to “hi how are you”.
+Let’s apply this function to the old SVD code and see if it brings any value to the
+extracted topics. With pandas, you can use the apply function to “apply” the clean-
+up code to any given column.Note that we have added only one line of code to our main SVD script and that’s
+the beauty of using a function and apply from pandas. The topics generated this
+time look like the following.<br>
+Phew! At least this is better than what we had earlier. But you know what? You can
+make it even better by **removing stopwords** in your cleaning function. What are
+stopwords? These are high-frequency words that exist in every language. For
+example, in the English language, these words are “a”, “an”, “the”, “for”, etc.
+Removing stopwords is not always a wise choice and depends a lot on the business
+problem. A sentence like “I need a new dog” after removing stopwords will become
+“need new dog”, so we don’t know who needs a new dog.<br>
+
+Let’s move to an approach most of us like to use these days: deep learning. But
+first, we must know what **word embeddings** are. You have seen that till now we
+converted the tokens into numbers. So, if there are N unique tokens in a given
+corpus, they can be represented by integers ranging from 0 to N-1. Now we will
+represent these integer tokens with vectors. This representation of words into
+vectors is known as word embeddings or word vectors. Google’s Word2Vec is one
+of the oldest approaches to convert words into vectors. We also have **FastText** from
+Facebook and **GloVe** (Global Vectors for Word Representation) from Stanford.
+These approaches are quite different from each other.<br>
+The basic idea is to build a shallow network that learns the embeddings for words
+by reconstruction of an input sentence. So, you can train a network to predict a
+missing word by using all the words around and during this process, the network
+will learn and update embeddings for all the words involved. This approach is also
+known as **Continuous Bag of Words or CBoW model**. You can also try to take
+one word and predict the context words instead. This is called **skip-gram model**.
+Word2Vec can learn embedding using these two methods.<br>
+FastText learns embeddings for character n-grams instead. Just like word n-grams,
+if we use characters, it is known as character n-grams, and finally, GloVe learns
+these embeddings by using co-occurrence matrices. So, we can say that all these
+different types of embeddings are in the end returning a dictionary where the key is
+a word in the corpus (for example English Wikipedia) and value is a vector of size
+N (usually 300).<br>
