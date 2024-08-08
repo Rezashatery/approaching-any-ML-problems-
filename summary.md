@@ -3066,3 +3066,61 @@ YES. These are the two most important rules, and no, there is no mistake in what
 wrote. The first step is to create folds. For simplicity, let’s say we divide the data
 into two parts: fold 1 and fold 2. Please note that this is only done for simplicity in
 explaining. In a real-world scenario, you should create more folds.<br>
+
+
+Now, we train our random forest model, logistic regression model and our xgboost
+model on fold 1 and make predictions on fold 2. After this, we train the models
+from scratch on fold 2 and make predictions on fold 1. Thus, we have created
+predictions for all of the training data. Now to combine these models, we take fold
+1 and all the predictions for fold 1 and create an optimization function that tries to
+find the best weights so as to minimize error or maximize AUC against the targets
+for fold 2. So, we are kind of training an optimization model on fold 1 with the
+predicted probabilities for the three models and evaluating it on fold 2.<br>
+
+Even random forest is an ensemble model. Random forest is just a combination of
+many simple decision trees. Random forest comes in a category of ensemble models
+which is popularly known as **bagging**. In bagging, we create small subsets of data
+and train multiple simple models. The final result is obtained by a combination of
+predictions, such as average, of all such small models.<br>
+
+And the xgboost model that we used is also an ensemble model. All gradient
+**boosting** models are ensemble models and come under the umbrella name:
+boosting. Boosting models work similar to bagging models, except for the fact that
+consecutive models in boosting are trained on error residuals and tend to minimize
+the errors of preceding models. This way, boosting models can learn the data
+perfectly and are thus susceptible to overfitting.<br>
+What we saw in the code snippets till now considers only one column. This is not
+always the case, and there will be many times when you have to deal with multiple
+columns for predictions. For example, you might have a problem where you are
+predicting one class out of multiple classes, i.e., multi-class classification problem.
+For a multi-class classification problem, you can easily choose the voting approach.
+But voting might not always be the best approach. If you want to combine the
+probabilities, you will have a two-dimensional array instead of a vector as we had
+previously when we were optimizing for AUC. With multiple classes, you can try
+optimizing for log-loss instead (or some other business-relevant metric). To
+combine, you can use a list of numpy arrays instead of a numpy array in the fit
+function (X) and subsequently, you would also need to change the optimizer and
+the predict function.<br>
+And now we can move to the next interesting topic which is quite popular and is
+known as **stacking**.<br>
+Stacking is not rocket science. It’s straightforward. If you have correct cross-
+validation and keep the folds same throughout the journey of your modelling task,
+nothing should overfit.<br>
+
+- Divide the training data into folds.
+- Train a bunch of models: M1, M2…..Mn.
+- Create full training predictions (using out of fold training) and test
+- predictions using all these models.
+- Till here it is Level – 1 (L1).
+- Use the fold predictions from these models as features to another model.
+- This is now a Level – 2 (L2) model.
+- Use the same folds as before to train this L2 model.
+- Now create OOF (out of fold) predictions on the training set and the test set.
+- Now you have L2 predictions for training data and also the final test set predictions.<br>
+
+You can keep repeating the L1 part and can create as many levels as you want.
+Sometimes, you will also come across a term called blending. If you do, don’t
+worry about it much. It is nothing but stacking with a holdout set instead of multiple
+folds.
+It must be noted that what I have described in this chapter can be applied to any
+kind of problem: classification, regression, multi-label classification, etc.<br>
